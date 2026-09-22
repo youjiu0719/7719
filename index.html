@@ -1,0 +1,1029 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>中英文配對練習</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5fb;
+  --card:#ffffff;
+  --text:#232a3d;
+  --muted:#7c8398;
+  --line:#e4e6f0;
+  --track-bg:#eef0f5;
+  --accent:#5b5fee;
+  --accent-soft:#eceeff;
+  --accent-border:#d9ddff;
+  --accent-text:#3643cb;
+  --accent-btn-text:#ffffff;
+  --focus-ring:rgba(91,95,238,.16);
+  --good:#1fa971;
+  --good-soft:#e8faf1;
+  --good-border:#bfe8d3;
+  --good-text:#16784d;
+  --bad:#e15a68;
+  --bad-soft:#fff0f2;
+  --bad-text:#b43f4b;
+  --pill-bg:#f2f4f8;
+  --pill-text:#5d6575;
+  --ghost-bg:#f2f4f8;
+  --ghost-text:#596173;
+  --shadow:0 10px 28px rgba(40,44,80,.09);
+  --tile-shadow:0 4px 14px rgba(20,22,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14151f;
+    --card:#1c1e2c;
+    --text:#e7e8f2;
+    --muted:#9297ab;
+    --line:#2b2d3d;
+    --track-bg:#242739;
+    --accent:#8b8ffc;
+    --accent-soft:#262a4a;
+    --accent-border:#3a3f6b;
+    --accent-text:#c7cbff;
+    --accent-btn-text:#14151f;
+    --focus-ring:rgba(139,143,252,.25);
+    --good:#35c98c;
+    --good-soft:#103326;
+    --good-border:#1f5a41;
+    --good-text:#8ff0c4;
+    --bad:#ff7c88;
+    --bad-soft:#3a1820;
+    --bad-text:#ffb3ba;
+    --pill-bg:#242739;
+    --pill-text:#aeb3c7;
+    --ghost-bg:#242739;
+    --ghost-text:#c2c6d8;
+    --shadow:0 10px 28px rgba(0,0,0,.45);
+    --tile-shadow:0 4px 14px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14151f;
+  --card:#1c1e2c;
+  --text:#e7e8f2;
+  --muted:#9297ab;
+  --line:#2b2d3d;
+  --track-bg:#242739;
+  --accent:#8b8ffc;
+  --accent-soft:#262a4a;
+  --accent-border:#3a3f6b;
+  --accent-text:#c7cbff;
+  --accent-btn-text:#14151f;
+  --focus-ring:rgba(139,143,252,.25);
+  --good:#35c98c;
+  --good-soft:#103326;
+  --good-border:#1f5a41;
+  --good-text:#8ff0c4;
+  --bad:#ff7c88;
+  --bad-soft:#3a1820;
+  --bad-text:#ffb3ba;
+  --pill-bg:#242739;
+  --pill-text:#aeb3c7;
+  --ghost-bg:#242739;
+  --ghost-text:#c2c6d8;
+  --shadow:0 10px 28px rgba(0,0,0,.45);
+  --tile-shadow:0 4px 14px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Noto Sans TC",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.wrap{
+  width:min(980px,calc(100% - 24px));
+  margin:28px auto 56px;
+}
+h1{
+  margin:0 0 8px;
+  font-size:clamp(28px,4vw,42px);
+  font-weight:900;
+  line-height:1.15;
+  text-wrap:balance;
+  letter-spacing:.01em;
+}
+.sub{color:var(--muted);margin:0;line-height:1.7}
+.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:20px;
+  margin-top:18px;
+  box-shadow:var(--shadow);
+}
+label{display:block;font-weight:700;margin-bottom:8px}
+textarea{
+  width:100%;
+  min-height:230px;
+  background:var(--card);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:15px 16px;
+  font:inherit;
+  font-size:16px;
+  line-height:1.7;
+  resize:vertical;
+  outline:none;
+}
+textarea::placeholder{color:var(--muted)}
+textarea:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 4px var(--focus-ring);
+}
+.hint,.small{font-size:14px;color:var(--muted);line-height:1.65}
+.hint{margin-top:10px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+button{
+  border:0;
+  border-radius:13px;
+  min-height:46px;
+  padding:0 18px;
+  font:inherit;
+  font-weight:700;
+  cursor:pointer;
+}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.primary{background:var(--accent);color:var(--accent-btn-text)}
+.secondary{background:var(--accent-soft);color:var(--accent-text)}
+.ghost{background:var(--ghost-bg);color:var(--ghost-text)}
+.msg{min-height:24px;margin-top:12px;font-size:14px;color:var(--muted)}
+.msg.good{color:var(--good)}
+.msg.bad{color:var(--bad)}
+.preview{
+  display:none;
+  margin-top:14px;
+  border-top:1px solid var(--line);
+  padding-top:14px;
+}
+.preview.show{display:block}
+.pair{
+  display:grid;
+  grid-template-columns:1fr 28px 1fr;
+  align-items:center;
+  gap:8px;
+  padding:8px 0;
+  border-bottom:1px dashed var(--line);
+}
+.pair:last-child{border-bottom:0}
+.arrow{text-align:center;color:var(--muted)}
+.game{display:none}
+.game.show{display:block}
+.gamehead{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:flex-start;
+  margin-bottom:16px;
+}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.pill{
+  padding:8px 11px;
+  border-radius:999px;
+  background:var(--pill-bg);
+  color:var(--pill-text);
+  font-size:14px;
+  font-variant-numeric:tabular-nums;
+}
+.progress-wrap{
+  margin:0 0 16px;
+}
+.progress-line{
+  height:8px;
+  border-radius:999px;
+  background:var(--track-bg);
+  overflow:hidden;
+}
+.progress-bar{
+  height:100%;
+  width:0%;
+  background:var(--accent);
+  transition:width .25s ease;
+}
+.progress-text{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:7px;
+  font-size:13px;
+  color:var(--muted);
+}
+.board-labels{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px 20px;
+  margin-bottom:8px;
+}
+.board-labels span{
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+  text-align:center;
+}
+.board{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px 20px;
+}
+.board-col{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.tile{
+  width:100%;
+  background:var(--card);
+  color:var(--text);
+  border:2px solid var(--line);
+  border-radius:16px;
+  min-height:76px;
+  padding:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  overflow-wrap:anywhere;
+  font-size:17px;
+  box-shadow:var(--tile-shadow);
+  transition:.14s ease;
+}
+.tile:hover{
+  border-color:var(--accent);
+  transform:translateY(-1px);
+}
+.tile.selected{
+  border-color:var(--accent);
+  background:var(--accent-soft);
+  color:var(--accent-text);
+}
+.tile.wrong{
+  border-color:var(--bad);
+  background:var(--bad-soft);
+  color:var(--bad-text);
+}
+.tile.correct{
+  border-color:var(--good);
+  background:var(--good-soft);
+  color:var(--good-text);
+}
+.tile.hidden-card{
+  visibility:hidden;
+  pointer-events:none;
+}
+.round-complete,
+.all-complete{
+  display:none;
+  margin-top:16px;
+  padding:18px;
+  border-radius:16px;
+  text-align:center;
+}
+.round-complete{
+  background:var(--accent-soft);
+  border:1px solid var(--accent-border);
+  color:var(--text);
+}
+.all-complete{
+  background:var(--good-soft);
+  border:1px solid var(--good-border);
+  color:var(--text);
+}
+.round-complete.show,.all-complete.show{display:block}
+.round-complete strong,.all-complete strong{font-size:22px}
+.text-input{
+  flex:1;
+  min-width:160px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  padding:0 14px;
+  font:inherit;
+  font-size:15px;
+  min-height:46px;
+  background:var(--card);
+  color:var(--text);
+  outline:none;
+}
+.text-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--focus-ring)}
+.saved-lists{display:flex;flex-wrap:wrap;gap:8px}
+.saved-lists:empty::after{content:'尚未儲存任何清單。';color:var(--muted);font-size:14px}
+.list-chip{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:var(--pill-bg);
+  color:var(--pill-text);
+  border-radius:999px;
+  padding:6px 6px 6px 14px;
+  font-size:14px;
+}
+.list-chip button{
+  min-height:28px;
+  height:28px;
+  padding:0 10px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:700;
+}
+.list-chip .load-btn{background:var(--accent-soft);color:var(--accent-text)}
+.list-chip .del-btn{background:var(--bad-soft);color:var(--bad-text)}
+.hint-overlay{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(10,12,24,.4);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease;
+  z-index:60;
+}
+.hint-overlay.show{
+  opacity:1;
+  pointer-events:auto;
+}
+.hint-box{
+  width:min(92vw,420px);
+  max-height:min(70vh,420px);
+  overflow:auto;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:var(--shadow);
+  transform:scale(.94) translateY(6px);
+  transition:transform .18s ease;
+}
+.hint-overlay.show .hint-box{
+  transform:scale(1) translateY(0);
+}
+.hint-box h4{margin:0 0 10px;font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.02em;text-align:center}
+.hint-pairs{display:flex;flex-direction:column;gap:6px}
+.hint-pair{font-size:15px;display:flex;justify-content:space-between;gap:14px;padding:6px 4px;border-bottom:1px dashed var(--line)}
+.hint-pair:last-child{border-bottom:0}
+.hint-empty{font-size:14px;color:var(--muted);text-align:center;padding:8px 0}
+@media(max-width:600px){
+  .wrap{width:min(100% - 16px,980px);margin:16px auto 40px}
+  .panel{padding:14px;border-radius:16px}
+  h1{font-size:clamp(22px,6vw,30px)}
+  .gamehead{flex-direction:column;align-items:stretch;gap:10px;margin-bottom:14px}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .pill{text-align:center;padding:9px 8px;font-size:13px}
+  .board,.board-labels{gap:8px 10px}
+  .board-labels span{font-size:12px}
+  .tile{min-height:64px;font-size:14.5px;padding:10px;border-radius:14px}
+  .pair{font-size:14px;grid-template-columns:1fr 22px 1fr}
+  .actions{gap:8px}
+  .actions button{flex:1 1 auto;min-width:0}
+  .actions .text-input{flex:1 1 100%}
+  .hint-overlay{padding:16px}
+  .hint-box{width:min(94vw,420px);padding:16px}
+  .list-chip{font-size:13px}
+}
+@media(max-width:360px){
+  .board,.board-labels{gap:6px 8px}
+  .tile{min-height:56px;font-size:13.5px;padding:8px}
+  .pill{font-size:12px;padding:8px 6px}
+}
+@media (prefers-reduced-motion: reduce){
+  .tile,button{transition:none}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section id="setup">
+    <h1>中英文配對練習</h1>
+    <p class="sub">貼上你的單字，馬上開始配對練習 — 每回合最多 6 組，完成後自動進入下一批。</p>
+    <div class="panel">
+      <div class="small" style="margin-bottom:8px;font-weight:700">已儲存的清單</div>
+      <div id="savedLists" class="saved-lists"></div>
+    </div>
+    <div class="panel">
+      <label for="words">貼上中英文單字</label>
+      <textarea id="words" placeholder="例如：
+apple 蘋果
+banana = 香蕉
+dog - 狗
+貓 cat
+happy：快樂的
+或：
+apple
+蘋果
+banana
+香蕉"></textarea>
+      <div class="actions">
+        <button id="checkBtn" class="secondary" type="button">檢查辨識</button>
+        <button id="startBtn" class="primary" type="button">開始練習</button>
+        <button id="demoBtn" class="ghost" type="button">放入範例</button>
+      </div>
+      <div id="msg" class="msg" aria-live="polite"></div>
+      <div id="preview" class="preview">
+        <strong>辨識到的配對</strong>
+        <div id="previewList"></div>
+      </div>
+      <div class="hint" style="margin-top:16px">
+        不用固定格式。支援空格、Tab、=、-、：、｜、逗號，也支援英文一行、中文下一行。
+      </div>
+      <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--line)">
+        <label for="listName">儲存目前清單</label>
+        <div class="actions" style="margin-top:0">
+          <input id="listName" class="text-input" type="text" placeholder="例如：Unit 3 單字">
+          <button id="saveListBtn" class="secondary" type="button">💾 儲存清單</button>
+        </div>
+        <div class="hint">清單只會儲存在這台裝置的這個瀏覽器裡，不會上傳到任何地方。</div>
+      </div>
+    </div>
+  </section>
+  <section id="game" class="game">
+    <div class="gamehead">
+      <div>
+        <h1 style="font-size:30px;margin-bottom:6px">配對開始</h1>
+        <div class="small">每回合最多 6 組，完成後會繼續下一批。</div>
+      </div>
+      <div class="stats">
+        <span class="pill">輪數 <b id="loopCount">1</b>/<b id="loopTarget">3</b></span>
+        <span class="pill">本回合 <b id="roundDone">0</b>/<b id="roundTotal">0</b></span>
+        <span class="pill">總完成 <b id="allDone">0</b>/<b id="allTotal">0</b></span>
+        <span class="pill">錯誤 <b id="wrongCount">0</b></span>
+        <span class="pill">時間 <b id="timeCount">0.0</b>s</span>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-text">
+        <span id="roundLabel">第 1 回合</span>
+        <span id="remainingLabel">剩餘 0 組</span>
+      </div>
+      <div class="progress-line">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+    </div>
+    <div class="board-labels"><span>English</span><span>中文</span></div>
+    <div id="board" class="board">
+      <div id="boardEn" class="board-col"></div>
+      <div id="boardZh" class="board-col"></div>
+    </div>
+    <div id="roundComplete" class="round-complete">
+      <strong id="roundCompleteTitle">這一批完成！</strong>
+      <div id="roundCompleteSub" class="small" style="margin-top:6px">正在進入下一批單字…</div>
+    </div>
+    <div id="allComplete" class="all-complete">
+      <strong>🎉 練習完成！</strong>
+      <div id="resultText" class="small" style="margin-top:6px"></div>
+      <div id="retryWrongWrap" style="margin-top:14px"></div>
+      <div id="continueLoopWrap" style="margin-top:10px"></div>
+    </div>
+    <div class="actions">
+      <button id="hintBtn" class="secondary" type="button">💡 提示（5秒）</button>
+      <button id="restartAllBtn" class="ghost" type="button">全部重新開始</button>
+      <button id="editBtn" class="ghost" type="button">返回編輯</button>
+    </div>
+  </section>
+  <div id="hintOverlay" class="hint-overlay" role="status" aria-live="polite">
+    <div class="hint-box">
+      <h4>還沒配對完成的單字</h4>
+      <div id="hintPairs" class="hint-pairs"></div>
+    </div>
+  </div>
+</main>
+<script>
+(() => {
+  const ROUND_SIZE = 6;
+  const words = document.getElementById('words');
+  const checkBtn = document.getElementById('checkBtn');
+  const startBtn = document.getElementById('startBtn');
+  const demoBtn = document.getElementById('demoBtn');
+  const msg = document.getElementById('msg');
+  const preview = document.getElementById('preview');
+  const previewList = document.getElementById('previewList');
+  const setup = document.getElementById('setup');
+  const game = document.getElementById('game');
+  const board = document.getElementById('board');
+  const boardEn = document.getElementById('boardEn');
+  const boardZh = document.getElementById('boardZh');
+  const loopCountEl = document.getElementById('loopCount');
+  const loopTargetEl = document.getElementById('loopTarget');
+  const roundDoneEl = document.getElementById('roundDone');
+  const roundTotalEl = document.getElementById('roundTotal');
+  const allDoneEl = document.getElementById('allDone');
+  const allTotalEl = document.getElementById('allTotal');
+  const wrongCountEl = document.getElementById('wrongCount');
+  const timeCount = document.getElementById('timeCount');
+  const roundLabel = document.getElementById('roundLabel');
+  const remainingLabel = document.getElementById('remainingLabel');
+  const progressBar = document.getElementById('progressBar');
+  const roundComplete = document.getElementById('roundComplete');
+  const roundCompleteTitle = document.getElementById('roundCompleteTitle');
+  const roundCompleteSub = document.getElementById('roundCompleteSub');
+  const allComplete = document.getElementById('allComplete');
+  const resultText = document.getElementById('resultText');
+  const retryWrongWrap = document.getElementById('retryWrongWrap');
+  const continueLoopWrap = document.getElementById('continueLoopWrap');
+  const restartAllBtn = document.getElementById('restartAllBtn');
+  const editBtn = document.getElementById('editBtn');
+  const hintBtn = document.getElementById('hintBtn');
+  const hintOverlay = document.getElementById('hintOverlay');
+  const hintPairs = document.getElementById('hintPairs');
+  const listNameInput = document.getElementById('listName');
+  const saveListBtn = document.getElementById('saveListBtn');
+  const savedListsEl = document.getElementById('savedLists');
+  const STORAGE_KEY = 'wordMatch.savedLists.v1';
+  let allPairs = [];
+  let fullPairs = [];
+  let wrongPairIds = new Set();
+  let loopsDone = 0;
+  let loopsTarget = 3;
+  let queue = [];
+  let currentRound = [];
+  let selected = null;
+  let locked = false;
+  let roundDone = 0;
+  let totalDone = 0;
+  let wrong = 0;
+  let roundNumber = 0;
+  let startedAt = 0;
+  let timer = null;
+  let matchedInRound = new Set();
+  let hintTimer = null;
+  const hasZh = s => /[㐀-鿿]/.test(s);
+  const hasEn = s => /[A-Za-z]/.test(s);
+  function clean(s){
+    return s.replace(/^[\s•●○▪▫◆◇★☆▶►]+/,'').trim();
+  }
+  function normalize(a,b){
+    a = clean(a);
+    b = clean(b);
+    if(hasEn(a) && hasZh(b) && !hasZh(a)) return {en:a,zh:b};
+    if(hasZh(a) && hasEn(b) && !hasEn(a)) return {en:b,zh:a};
+    const az = (a.match(/[㐀-鿿]/g)||[]).length;
+    const bz = (b.match(/[㐀-鿿]/g)||[]).length;
+    const ae = (a.match(/[A-Za-z]/g)||[]).length;
+    const be = (b.match(/[A-Za-z]/g)||[]).length;
+    return (ae >= be && bz >= az) ? {en:a,zh:b} : {en:b,zh:a};
+  }
+  function splitLine(line){
+    line = clean(line);
+    if(!line) return null;
+    const separators = [
+      /\t+/,
+      /\s*[=＝]\s*/,
+      /\s*[:：]\s*/,
+      /\s*[|｜]\s*/,
+      /\s*[\/／]\s*/,
+      /\s+[–—-]\s+/,
+      /\s*[,，;；]\s*/
+    ];
+    for(const re of separators){
+      const parts = line.split(re).map(clean).filter(Boolean);
+      if(parts.length === 2){
+        const [a,b] = parts;
+        if((hasEn(a)&&hasZh(b)) || (hasZh(a)&&hasEn(b))){
+          return normalize(a,b);
+        }
+      }
+    }
+    const enZh = line.match(/^(.+?[A-Za-z][A-Za-z0-9'’.\- ]*?)\s+([㐀-鿿].*)$/);
+    if(enZh) return normalize(enZh[1],enZh[2]);
+    const zhEn = line.match(/^([㐀-鿿].*?)\s+([A-Za-z].*)$/);
+    if(zhEn) return normalize(zhEn[1],zhEn[2]);
+    const enZhNoSpace = line.match(/^([A-Za-z][A-Za-z0-9'’.\- ]*?)([㐀-鿿].+)$/);
+    if(enZhNoSpace) return normalize(enZhNoSpace[1],enZhNoSpace[2]);
+    return null;
+  }
+  function parse(text){
+    const lines = text.split(/\r?\n/).map(clean).filter(Boolean);
+    const found = [];
+    const rest = [];
+    for(const line of lines){
+      const p = splitLine(line);
+      if(p) found.push(p);
+      else rest.push(line);
+    }
+    let i = 0;
+    while(i < rest.length - 1){
+      const a = rest[i];
+      const b = rest[i+1];
+      if((hasEn(a) && !hasZh(a) && hasZh(b)) ||
+         (hasZh(a) && !hasEn(a) && hasEn(b))){
+        found.push(normalize(a,b));
+        i += 2;
+      }else{
+        i += 1;
+      }
+    }
+    const seen = new Set();
+    return found.filter(p => {
+      const key = (p.en + '||' + p.zh).toLowerCase();
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+  function setMsg(text,type=''){
+    msg.textContent = text;
+    msg.className = 'msg' + (type ? ' '+type : '');
+  }
+  function showPreview(){
+    const found = parse(words.value);
+    previewList.innerHTML = '';
+    if(!found.length){
+      preview.classList.remove('show');
+      setMsg('沒有成功辨識到配對，請確認內容裡同時有中文與英文。','bad');
+      return found;
+    }
+    found.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'pair';
+      const a = document.createElement('div');
+      a.textContent = p.en;
+      const arrow = document.createElement('div');
+      arrow.className = 'arrow';
+      arrow.textContent = '↔';
+      const b = document.createElement('div');
+      b.textContent = p.zh;
+      row.append(a,arrow,b);
+      previewList.append(row);
+    });
+    preview.classList.add('show');
+    setMsg(`成功辨識 ${found.length} 組；練習時會每次出現最多 ${ROUND_SIZE} 組。`,'good');
+    return found;
+  }
+  function shuffle(arr){
+    const a = [...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+  function startTimer(){
+    stopTimer();
+    startedAt = performance.now();
+    timeCount.textContent = '0.0';
+    timer = setInterval(() => {
+      timeCount.textContent = ((performance.now() - startedAt)/1000).toFixed(1);
+    },100);
+  }
+  function stopTimer(){
+    if(timer){
+      clearInterval(timer);
+      timer = null;
+    }
+  }
+  function updateProgress(){
+    roundDoneEl.textContent = String(roundDone);
+    roundTotalEl.textContent = String(currentRound.length);
+    allDoneEl.textContent = String(totalDone);
+    allTotalEl.textContent = String(allPairs.length);
+    wrongCountEl.textContent = String(wrong);
+    const remaining = allPairs.length - totalDone;
+    remainingLabel.textContent = `剩餘 ${remaining} 組`;
+    const pct = allPairs.length ? (totalDone / allPairs.length) * 100 : 0;
+    progressBar.style.width = pct + '%';
+  }
+  function startAll(){
+    wrong = 0;
+    roundNumber = 0;
+    wrongPairIds = new Set();
+    loopsDone = 0;
+    loopsTarget = 3;
+    allComplete.classList.remove('show');
+    roundComplete.classList.remove('show');
+    startTimer();
+    startLoop();
+  }
+  function startLoop(){
+    queue = shuffle(allPairs.map((p, index) => ({...p, originalId:index})));
+    totalDone = 0;
+    updateLoopLabel();
+    nextRound();
+  }
+  function updateLoopLabel(){
+    loopCountEl.textContent = String(loopsDone + 1);
+    loopTargetEl.textContent = String(loopsTarget);
+  }
+  function nextRound(){
+    selected = null;
+    locked = false;
+    roundDone = 0;
+    roundNumber++;
+    currentRound = queue.splice(0, ROUND_SIZE);
+    matchedInRound = new Set();
+    hideHint();
+    roundLabel.textContent = `第 ${roundNumber} 回合`;
+    buildBoard();
+    updateProgress();
+  }
+  function hideHint(){
+    clearTimeout(hintTimer);
+    hintOverlay.classList.remove('show');
+  }
+  function showHint(){
+    const remaining = currentRound.filter((_, idx) => !matchedInRound.has(idx));
+    hintPairs.innerHTML = '';
+    if(!remaining.length){
+      const div = document.createElement('div');
+      div.className = 'hint-empty';
+      div.textContent = '這一批都配對完成了！';
+      hintPairs.append(div);
+    }else{
+      remaining.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'hint-pair';
+        const en = document.createElement('span');
+        en.textContent = p.en;
+        const zh = document.createElement('span');
+        zh.textContent = p.zh;
+        row.append(en, zh);
+        hintPairs.append(row);
+      });
+    }
+    hintOverlay.classList.add('show');
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => hintOverlay.classList.remove('show'), 5000);
+  }
+  function loadStoredLists(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){
+      return {};
+    }
+  }
+  function saveStoredLists(lists){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+  function renderSavedLists(){
+    const lists = loadStoredLists();
+    savedListsEl.innerHTML = '';
+    Object.keys(lists).sort((a,b) => a.localeCompare(b,'zh-Hant')).forEach(name => {
+      const chip = document.createElement('div');
+      chip.className = 'list-chip';
+      const label = document.createElement('span');
+      label.textContent = name;
+      const loadBtn = document.createElement('button');
+      loadBtn.type = 'button';
+      loadBtn.className = 'load-btn';
+      loadBtn.textContent = '開啟';
+      loadBtn.addEventListener('click', () => {
+        words.value = lists[name];
+        showPreview();
+        setMsg(`已載入清單「${name}」。`,'good');
+        window.scrollTo({top:0,behavior:'smooth'});
+      });
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'del-btn';
+      delBtn.textContent = '刪除';
+      delBtn.addEventListener('click', () => {
+        const current = loadStoredLists();
+        delete current[name];
+        saveStoredLists(current);
+        renderSavedLists();
+      });
+      chip.append(label, loadBtn, delBtn);
+      savedListsEl.append(chip);
+    });
+  }
+  function makeTile(card){
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tile';
+    btn.dataset.id = String(card.id);
+    btn.dataset.side = card.side;
+    btn.textContent = card.text;
+    btn.addEventListener('click',()=>selectTile(btn));
+    return btn;
+  }
+  function buildBoard(){
+    boardEn.innerHTML = '';
+    boardZh.innerHTML = '';
+    const enCards = currentRound.map((p,id)=>({id,side:'en',text:p.en}));
+    const zhCards = currentRound.map((p,id)=>({id,side:'zh',text:p.zh}));
+    shuffle(enCards).forEach(card => boardEn.append(makeTile(card)));
+    shuffle(zhCards).forEach(card => boardZh.append(makeTile(card)));
+  }
+  function selectTile(tile){
+    if(locked || tile.classList.contains('hidden-card')) return;
+    if(selected === tile){
+      tile.classList.remove('selected');
+      selected = null;
+      return;
+    }
+    if(!selected){
+      selected = tile;
+      tile.classList.add('selected');
+      return;
+    }
+    const first = selected;
+    const second = tile;
+    locked = true;
+    const match =
+      first.dataset.id === second.dataset.id &&
+      first.dataset.side !== second.dataset.side;
+    if(match){
+      first.classList.remove('selected');
+      first.classList.add('correct');
+      second.classList.add('correct');
+      matchedInRound.add(Number(first.dataset.id));
+      setTimeout(()=>{
+        first.classList.add('hidden-card');
+        second.classList.add('hidden-card');
+        first.classList.remove('correct');
+        second.classList.remove('correct');
+        selected = null;
+        locked = false;
+        roundDone++;
+        totalDone++;
+        updateProgress();
+        if(roundDone === currentRound.length){
+          if(queue.length > 0){
+            roundCompleteTitle.textContent = '這一批完成！';
+            roundCompleteSub.textContent = '正在進入下一批單字…';
+            roundComplete.classList.add('show');
+            setTimeout(()=>{
+              roundComplete.classList.remove('show');
+              nextRound();
+            },700);
+          }else{
+            loopsDone++;
+            if(loopsDone < loopsTarget){
+              roundCompleteTitle.textContent = `第 ${loopsDone} 輪完成！`;
+              roundCompleteSub.textContent = `正在開始第 ${loopsDone + 1} 輪…`;
+              roundComplete.classList.add('show');
+              setTimeout(()=>{
+                roundComplete.classList.remove('show');
+                startLoop();
+              },900);
+            }else{
+              finishAll();
+            }
+          }
+        }
+      },300);
+    }else{
+      first.classList.remove('selected');
+      first.classList.add('wrong');
+      second.classList.add('wrong');
+      wrong++;
+      wrongPairIds.add(currentRound[Number(first.dataset.id)].originalId);
+      wrongPairIds.add(currentRound[Number(second.dataset.id)].originalId);
+      updateProgress();
+      setTimeout(()=>{
+        first.classList.remove('wrong');
+        second.classList.remove('wrong');
+        selected = null;
+        locked = false;
+      },450);
+    }
+  }
+  function finishAll(){
+    stopTimer();
+    boardEn.innerHTML = '';
+    boardZh.innerHTML = '';
+    const seconds = ((performance.now() - startedAt)/1000).toFixed(1);
+    resultText.textContent =
+      `已完成 ${loopsDone} 輪（每輪 ${allPairs.length} 組），總時間 ${seconds} 秒，錯誤 ${wrong} 次。`;
+    allComplete.classList.add('show');
+    progressBar.style.width = '100%';
+    remainingLabel.textContent = '全部完成';
+    renderRetryWrong();
+    renderContinueLoop();
+  }
+  function renderContinueLoop(){
+    continueLoopWrap.innerHTML = '';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ghost';
+    btn.textContent = '🔁 再練習一輪（自由選擇）';
+    btn.addEventListener('click', () => {
+      loopsTarget = loopsDone + 1;
+      allComplete.classList.remove('show');
+      timer = setInterval(() => {
+        timeCount.textContent = ((performance.now() - startedAt)/1000).toFixed(1);
+      },100);
+      startLoop();
+    });
+    continueLoopWrap.append(btn);
+  }
+  function renderRetryWrong(){
+    retryWrongWrap.innerHTML = '';
+    const wrongList = Array.from(wrongPairIds).map(id => allPairs[id]).filter(Boolean);
+    if(!wrongList.length) return;
+    const note = document.createElement('div');
+    note.className = 'small';
+    note.style.marginBottom = '10px';
+    note.textContent = '要不要針對答錯的單字再加強一輪？（自由選擇，不練也沒關係）';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'secondary';
+    btn.textContent = `📝 只練習答錯的 ${wrongList.length} 組`;
+    btn.addEventListener('click', () => {
+      allPairs = wrongList;
+      allComplete.classList.remove('show');
+      startAll();
+    });
+    retryWrongWrap.append(note, btn);
+  }
+  checkBtn.addEventListener('click',showPreview);
+  startBtn.addEventListener('click',()=>{
+    const found = parse(words.value);
+    if(found.length < 2){
+      showPreview();
+      setMsg('至少需要 2 組配對才能開始。','bad');
+      return;
+    }
+    allPairs = found;
+    fullPairs = found;
+    setup.style.display = 'none';
+    game.classList.add('show');
+    startAll();
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+  demoBtn.addEventListener('click',()=>{
+    words.value = `apple 蘋果
+banana 香蕉
+dog 狗
+cat 貓
+happy 快樂的
+beautiful 美麗的
+teacher 老師
+school 學校
+important 重要的
+careful 小心的
+future 未來
+answer 答案
+travel 旅行
+quiet 安靜的
+strong 強壯的
+practice 練習
+weather 天氣
+friend 朋友
+language 語言
+interesting 有趣的`;
+    showPreview();
+  });
+  restartAllBtn.addEventListener('click',()=>{
+    if(!fullPairs.length) return;
+    allPairs = fullPairs;
+    allComplete.classList.remove('show');
+    startAll();
+  });
+  editBtn.addEventListener('click',()=>{
+    stopTimer();
+    hideHint();
+    game.classList.remove('show');
+    setup.style.display = 'block';
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+  hintBtn.addEventListener('click',showHint);
+  hintOverlay.addEventListener('click', e => {
+    if(e.target === hintOverlay) hideHint();
+  });
+  saveListBtn.addEventListener('click',()=>{
+    const name = listNameInput.value.trim();
+    if(!name){
+      setMsg('請先輸入清單名稱。','bad');
+      listNameInput.focus();
+      return;
+    }
+    if(!words.value.trim()){
+      setMsg('請先貼上要儲存的單字內容。','bad');
+      return;
+    }
+    const lists = loadStoredLists();
+    lists[name] = words.value;
+    const ok = saveStoredLists(lists);
+    if(ok){
+      setMsg(`已將清單「${name}」儲存到這個瀏覽器。`,'good');
+      listNameInput.value = '';
+      renderSavedLists();
+    }else{
+      setMsg('儲存失敗，這個瀏覽器可能停用了本機儲存功能。','bad');
+    }
+  });
+  listNameInput.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      saveListBtn.click();
+    }
+  });
+  renderSavedLists();
+})();
+</script>
+</body>
+</html>
