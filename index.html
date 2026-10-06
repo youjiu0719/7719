@@ -1,159 +1,133 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
 <title>教學工具箱</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Lexend:wght@500;600&display=swap">
 <style>
-  :root{
-    --bg:#eef1ee; --surface:#ffffff; --surface-2:#e3e9e2; --ink:#14212b; --muted:#57676d;
-    --line:#d7ddd4; --accent:#1f6b4c; --accent-ink:#ffffff; --accent-soft:#dbe9e0;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --bg:#10161a; --surface:#182229; --surface-2:#1f2b30; --ink:#edf2ef; --muted:#9fb2b0;
-      --line:#2a373a; --accent:#49b389; --accent-ink:#08160f; --accent-soft:#1c332a;
-    }
-  }
-  :root[data-theme="dark"]{
-    --bg:#10161a; --surface:#182229; --surface-2:#1f2b30; --ink:#edf2ef; --muted:#9fb2b0;
-    --line:#2a373a; --accent:#49b389; --accent-ink:#08160f; --accent-soft:#1c332a;
-  }
-  *{box-sizing:border-box;}
-  body{background:var(--bg); color:var(--ink); font:15px/1.6 "Work Sans",system-ui,sans-serif;}
-  .wrap{max-width:1080px; margin:0 auto; padding:56px 24px 72px;}
+/* Layout: teacher's tool shelf. Ready tools as a roomy grid up top; everything still in progress folded into one quiet list at the bottom. */
+:root{
+  --bg:#f3f5f8;          /* cool paper */
+  --surface:#ffffff;
+  --ink:#1c2740;         /* whiteboard-marker navy */
+  --muted:#667189;
+  --line:#dfe4ec;
+  --accent:#2c56c9;      /* ballpoint blue */
+  --mark:#ffe27a;        /* highlighter yellow */
+  --mark-ink:#3b2f00;
+  --chip:#eaf0fc;
+  --f-display:"LXGW WenKai TC","Kaiti TC","STKaiti","Noto Sans TC",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-num:"Lexend","Noto Sans TC",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121722;--surface:#1a2130;--ink:#e9edf6;--muted:#9aa4ba;--line:#2a3345;--accent:#86a6f5;
+  --mark:#6b5a12;--mark-ink:#fff3c2;--chip:#232e47;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121722;--surface:#1a2130;--ink:#e9edf6;--muted:#9aa4ba;--line:#2a3345;--accent:#86a6f5;
+  --mark:#6b5a12;--mark-ink:#fff3c2;--chip:#232e47;color-scheme:dark}
 
-  header.hero{margin-bottom:48px;}
-  .eyebrow{font:600 12px/1 "IBM Plex Mono",monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin:0 0 14px;}
-  h1{font:600 40px/1.15 "Fraunces",serif; margin:0 0 12px; text-wrap:balance;}
-  .lede{font-size:16px; color:var(--muted); max-width:56ch; margin:0;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.65 var(--f-body)}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:48px 64px}
 
-  .section-label{font:600 12px/1 "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:0 0 16px;}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 32px;margin-bottom:36px}
+h1{font:700 clamp(36px,6vw,54px)/1.1 var(--f-display);margin:0;letter-spacing:.02em}
+h1 span{background:linear-gradient(transparent 58%,var(--mark) 58%,var(--mark) 92%,transparent 92%);padding:0 .08em}
+.lede{margin:10px 0 0;color:var(--muted);max-width:44ch}
+.count{font:600 13px/1 var(--f-num);color:var(--muted);letter-spacing:.06em;white-space:nowrap}
+.count b{font-size:34px;color:var(--ink);margin-right:6px;font-variant-numeric:tabular-nums}
 
-  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
-  @media (max-width:860px){ .grid{grid-template-columns:1fr 1fr;} }
-  @media (max-width:600px){ .grid{grid-template-columns:1fr;} }
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.tool{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto 1fr auto;column-gap:16px;row-gap:6px;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;color:inherit;text-decoration:none;
+  transition:border-color .15s,transform .15s}
+.tool:hover{border-color:var(--accent);transform:translateY(-2px)}
+.tool:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.glyph{grid-row:1/4;width:56px;height:56px;border-radius:12px;background:var(--chip);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font:700 28px/1 var(--f-display)}
+.tool h2{margin:0;font:700 20px/1.35 var(--f-display);min-width:0}
+.tool h2 em{font-style:normal;background:linear-gradient(transparent 60%,transparent 60%);transition:background .2s}
+.tool:hover h2 em{background:linear-gradient(transparent 60%,var(--mark) 60%)}
+.tool p{margin:0;font-size:14px;color:var(--muted);min-width:0}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.chip{font-size:12px;padding:2px 9px;border-radius:999px;background:var(--chip);color:var(--accent);white-space:nowrap}
+.ext{font:500 11px/1 var(--f-num);color:var(--muted);letter-spacing:.04em}
 
-  .card{
-    position:relative; display:flex; flex-direction:column; gap:14px; background:var(--surface);
-    border:1px solid var(--line); border-radius:16px; padding:24px; text-decoration:none; color:inherit;
-    min-height:190px;
-  }
-  a.card{transition:border-color .15s ease, transform .15s ease;}
-  a.card:hover{border-color:var(--accent); transform:translateY(-2px);}
-  .card.disabled{opacity:.6;}
+.later{margin-top:48px;border-top:1px dashed var(--line);padding-top:24px}
+.later h3{margin:0 0 4px;font:700 18px/1.3 var(--f-display);color:var(--muted)}
+.later>p{margin:0 0 14px;font-size:13px;color:var(--muted)}
+.later ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0 28px}
+.later li{display:flex;gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line);min-width:0}
+.later li strong{font-weight:500;white-space:nowrap}
+.later li span{font-size:13px;color:var(--muted);min-width:0}
+.later li i{margin-left:auto;font-style:normal;font-size:12px;color:var(--muted);white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:1px 8px}
 
-  .mark{
-    width:44px; height:44px; border-radius:11px; background:var(--accent-soft); color:var(--accent);
-    display:flex; align-items:center; justify-content:center; font:600 19px/1 "Fraunces",serif;
-  }
-  .card h2{font:600 18px/1.3 "Work Sans",sans-serif; margin:0;}
-  .card p{font-size:13.5px; color:var(--muted); margin:0; flex:1;}
-  .tag{
-    align-self:flex-start; font:500 11px/1 "IBM Plex Mono",monospace; letter-spacing:.04em;
-    padding:5px 10px; border-radius:99px; background:var(--accent-soft); color:var(--accent);
-  }
-  .tag.pending{background:var(--surface-2); color:var(--muted);}
-
-  footer{margin-top:56px; font-size:12.5px; color:var(--muted); border-top:1px solid var(--line); padding-top:18px;}
+footer{margin-top:40px;font-size:12.5px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.tool{transition:none}}
+@media (max-width:480px){.later li{flex-wrap:wrap}.later li i{margin-left:0}}
 </style>
 
 <div class="wrap">
-  <header class="hero">
-    <p class="eyebrow">自製小工具收藏</p>
-    <h1>教學工具箱</h1>
-    <p class="lede">整理教材製作、社群經營、班務網站到個人專案會用到的自製工具，方便隨時點開使用，之後會持續加入更多。</p>
+  <header>
+    <div>
+      <h1><span>教學工具箱</span></h1>
+      <p class="lede">上課投影、學生練習、班務和個人專案用的自製小工具，點了就能用。</p>
+    </div>
+    <div class="count"><b>6</b>個工具可以使用</div>
   </header>
 
   <div class="grid">
-    <a class="card" href="post-card.html">
-      <span class="mark">貼</span>
-      <span class="tag">可使用</span>
-      <h2>貼文圖卡產生器</h2>
-      <p>輸入標題與內文，套用版型產出可下載的社群貼文圖卡。</p>
+    <a class="tool" href="copy-sprint.html">
+      <span class="glyph">抄</span>
+      <h2><em>限時抄寫單字</em></h2>
+      <p>內建 Starters 主題單字，一次打亂顯示 50 個以上，以分鐘倒數計時。</p>
+      <div class="meta"><span class="chip">上課投影</span><span class="chip">英文</span></div>
     </a>
-
-    <a class="card" href="copy-sprint.html">
-      <span class="mark">抄</span>
-      <span class="tag">可使用</span>
-      <h2>限時抄寫單字</h2>
-      <p>內建 Starters 主題單字，一次隨機打亂顯示 50 個以上，以分鐘為單位倒數計時，適合上課投影。</p>
+    <a class="tool" href="starters.html">
+      <span class="glyph">說</span>
+      <h2><em>Starters 口說抽卡</em></h2>
+      <p>劍橋 Starters Book 2–9 口說練習：情境圖問答、物件卡抽卡、個人問答。</p>
+      <div class="meta"><span class="chip">上課投影</span><span class="chip">英文</span></div>
     </a>
-
-    <div class="card disabled">
-      <span class="mark">題</span>
-      <span class="tag pending">尚未上線</span>
-      <h2>題庫轉換器</h2>
-      <p>支援康軒、南一、翰林、龍騰與國中版題庫格式互轉，目前為本機檔案，尚未發布連結。</p>
-    </div>
-
-    <a class="card" href="word-match.html">
-      <span class="mark">單</span>
-      <span class="tag">可使用</span>
-      <h2>單字閃卡</h2>
-      <p>貼上中英文單字就能玩配對，每回合 6 組、共 3 輪，可儲存清單並針對答錯的字再練。</p>
+    <a class="tool" href="word-match.html">
+      <span class="glyph">配</span>
+      <h2><em>單字閃卡</em></h2>
+      <p>貼上中英文單字玩配對，每回合 6 組，可存清單、只練答錯的字。</p>
+      <div class="meta"><span class="chip">學生練習</span><span class="chip">英文</span></div>
     </a>
-
-    <a class="card" href="starters.html">
-      <span class="mark">說</span>
-      <span class="tag">可使用</span>
-      <h2>Starters 口說抽卡</h2>
-      <p>劍橋 Pre A1 Starters Book 2–9 口說練習，情境圖問答、物件卡抽卡與個人問答，適合上課投影。</p>
+    <a class="tool" href="post-card.html">
+      <span class="glyph">貼</span>
+      <h2><em>貼文圖卡產生器</em></h2>
+      <p>輸入標題與內文，套三種版型，產出 1:1 或限動尺寸的社群圖卡。</p>
+      <div class="meta"><span class="chip">行政宣傳</span></div>
     </a>
-
-    <div class="card disabled">
-      <span class="mark">練</span>
-      <span class="tag pending">尚未上線</span>
-      <h2>英文練習字 Worksheet 產生器</h2>
-      <p>輸入單字或句子，自動排成四線格練習學習單，可調字級與行距並匯出 PDF。</p>
-    </div>
-
-    <div class="card disabled">
-      <span class="mark">描</span>
-      <span class="tag pending">尚未上線</span>
-      <h2>描紅小書工廠</h2>
-      <p>逐頁製作英文描紅句子搭配畫圖框的練習小書，可新增排序頁面並匯出 PDF。</p>
-    </div>
-
-    <a class="card" href="https://youjiu0719.github.io/twitch/" target="_blank" rel="noopener">
-      <span class="mark">隊</span>
-      <span class="tag">可使用</span>
-      <h2>Twitch 兌換排隊顯示</h2>
-      <p>串接 Twitch API，將未處理的頻道點數兌換整理成排隊卡片，可標記完成或取消。</p>
+    <a class="tool" href="https://youjiu0719.github.io/twitch/" target="_blank" rel="noopener">
+      <span class="glyph">隊</span>
+      <h2><em>Twitch 兌換排隊顯示</em></h2>
+      <p>把頻道點數兌換整理成排隊卡片，可標記完成或取消。</p>
+      <div class="meta"><span class="chip">個人專案</span><span class="ext">另開新頁 ↗</span></div>
     </a>
-
-    <a class="card" href="jixuan.html">
-      <span class="mark">籤</span>
-      <span class="tag">可使用</span>
-      <h2>濟玄天書線上抽籤</h2>
-      <p>《濟玄天書．萬事篇》96 籤線上抽籤，含洗籤翻牌動畫與直式籤詩排版。</p>
+    <a class="tool" href="jixuan.html">
+      <span class="glyph">籤</span>
+      <h2><em>濟玄天書線上抽籤</em></h2>
+      <p>《濟玄天書．萬事篇》96 籤，含洗籤翻牌動畫與直式籤詩。</p>
+      <div class="meta"><span class="chip">個人專案</span></div>
     </a>
-
-    <div class="card disabled">
-      <span class="mark">歷</span>
-      <span class="tag pending">尚未上線</span>
-      <h2>I.C.S. 歷年課程成果</h2>
-      <p>推班用課程成果總覽頁，十大類課程介紹與代表活動集錦。</p>
-    </div>
-
-    <div class="card disabled">
-      <span class="mark">營</span>
-      <span class="tag pending">尚未上線</span>
-      <h2>ICS 夏令營成果展</h2>
-      <p>Creator Academy 成果展示網站，課程簡介、講義與學生作品展示。</p>
-    </div>
-
-    <div class="card disabled">
-      <span class="mark">班</span>
-      <span class="tag pending">尚未上線</span>
-      <h2>國際班網站</h2>
-      <p>ICS 國際素養班照片牆與聯絡本，依資料夾結構瀏覽活動照片。</p>
-    </div>
-
-    <div class="card disabled">
-      <span class="mark">測</span>
-      <span class="tag pending">尚未上線</span>
-      <h2>題庫前端複習系統</h2>
-      <p>讀取 Google Sheets 題庫的線上複習測驗，含錯題記錄與排除功能。</p>
-    </div>
   </div>
+
+  <section class="later">
+    <h3>準備中</h3>
+    <p>這些工具還沒有可以開的連結，上線後會移到上面。</p>
+    <ul>
+      <li><strong>英文練習字 Worksheet</strong><span>四線格學習單，匯出 PDF</span><i>待發布</i></li>
+      <li><strong>描紅小書工廠</strong><span>描紅句子＋畫圖框小書</span><i>待發布</i></li>
+      <li><strong>題庫轉換器</strong><span>各版本題庫格式互轉</span><i>待整合</i></li>
+      <li><strong>題庫前端複習系統</strong><span>Google Sheets 題庫複習測驗</span><i>待連結</i></li>
+      <li><strong>I.C.S. 歷年課程成果</strong><span>推班用課程成果總覽</span><i>待連結</i></li>
+      <li><strong>ICS 夏令營成果展</strong><span>Creator Academy 作品展示</span><i>待連結</i></li>
+      <li><strong>國際班網站</strong><span>照片牆與聯絡本</span><i>待連結</i></li>
+    </ul>
+  </section>
 
   <footer>教學工具箱 · 持續新增中</footer>
 </div>
