@@ -1,0 +1,339 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>貼文圖卡產生器</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600&family=Archivo:wght@500;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#eef1ee; --surface:#ffffff; --surface-2:#e3e9e2; --ink:#14212b; --muted:#57676d;
+    --line:#d7ddd4; --accent:#1f6b4c; --accent-ink:#ffffff; --accent-soft:#dbe9e0; --danger:#b3432c;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#10161a; --surface:#182229; --surface-2:#1f2b30; --ink:#edf2ef; --muted:#9fb2b0;
+      --line:#2a373a; --accent:#49b389; --accent-ink:#08160f; --accent-soft:#1c332a; --danger:#e07a5f;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#10161a; --surface:#182229; --surface-2:#1f2b30; --ink:#edf2ef; --muted:#9fb2b0;
+    --line:#2a373a; --accent:#49b389; --accent-ink:#08160f; --accent-soft:#1c332a; --danger:#e07a5f;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--ink); font:15px/1.55 "Work Sans",system-ui,sans-serif;}
+  .wrap{max-width:1180px; margin:0 auto; padding:28px 20px 64px;}
+  .top{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:22px; flex-wrap:wrap;}
+  .top h1{font:600 22px/1.2 "Work Sans",sans-serif; margin:0; letter-spacing:.2px;}
+  .top p{margin:4px 0 0; color:var(--muted); font-size:13px;}
+  .back{font-size:13px; color:var(--muted); text-decoration:none; border:1px solid var(--line); padding:6px 12px; border-radius:99px; white-space:nowrap;}
+  .back:hover{color:var(--ink); border-color:var(--accent);}
+  .layout{display:grid; grid-template-columns:minmax(280px,360px) 1fr; gap:24px; align-items:start;}
+  @media (max-width:820px){ .layout{grid-template-columns:1fr;} }
+
+  .panel{background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:22px;}
+  .field{margin-bottom:18px;}
+  .field label{display:block; font-size:12.5px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:7px;}
+  .field input[type=text], .field textarea{
+    width:100%; border:1px solid var(--line); background:var(--bg); color:var(--ink);
+    border-radius:9px; padding:9px 11px; font:14px/1.5 "Work Sans",sans-serif; resize:vertical;
+  }
+  .field input[type=text]:focus, .field textarea:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent);}
+  .field textarea{min-height:74px;}
+  .hint{font-size:11.5px; color:var(--muted); margin-top:5px;}
+
+  .seg{display:flex; gap:8px; flex-wrap:wrap;}
+  .seg button{
+    flex:1; min-width:88px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink);
+    border-radius:9px; padding:8px 6px; font:13px/1.2 "Work Sans",sans-serif; cursor:pointer; text-align:center;
+  }
+  .seg button.active{border-color:var(--accent); background:var(--accent-soft); font-weight:600;}
+
+  .tpl-choices{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
+  .tpl-choice{border:2px solid var(--line); border-radius:10px; overflow:hidden; cursor:pointer; background:none; padding:0;}
+  .tpl-choice.active{border-color:var(--accent);}
+  .tpl-swatch{height:52px; width:100%;}
+  .tpl-choice .lbl{display:block; font-size:11px; padding:5px 4px; text-align:center; color:var(--muted);}
+  .sw-ivory{background:linear-gradient(160deg,#f2efe4,#e2e7dc);}
+  .sw-navy{background:linear-gradient(160deg,#101c26,#1c2f3d);}
+  .sw-bold{background:linear-gradient(135deg,#ff6f59,#6a2c57);}
+
+  button.primary{
+    width:100%; background:var(--accent); color:var(--accent-ink); border:none; border-radius:10px;
+    padding:13px 16px; font:600 14.5px/1 "Work Sans",sans-serif; cursor:pointer; margin-top:6px;
+  }
+  button.primary:disabled{opacity:.55; cursor:not-allowed;}
+  button.primary:hover:not(:disabled){filter:brightness(1.05);}
+  .status{font-size:12.5px; color:var(--muted); margin-top:8px; min-height:16px;}
+  .status.err{color:var(--danger);}
+
+  .preview-panel{display:flex; flex-direction:column; align-items:center; gap:14px;}
+  .preview-scaler{position:relative; overflow:hidden; border-radius:14px; box-shadow:0 18px 40px -20px rgba(0,0,0,.35); border:1px solid var(--line);}
+  .card-canvas{position:relative; transform-origin:top left; overflow:hidden;}
+
+  /* ---- card templates (rendered at native 1080px canvas) ---- */
+  .card-canvas{display:flex; flex-direction:column; justify-content:space-between; padding:78px; font-family:"Work Sans",sans-serif;}
+  .card-tag{display:inline-block; align-self:flex-start; font:600 22px/1 "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; padding:11px 22px; border-radius:99px;}
+  .card-title{font-weight:600; text-wrap:balance; margin:36px 0 0;}
+  .card-body{font-size:30px; line-height:1.55; margin-top:30px; white-space:pre-wrap;}
+  .card-footer{display:flex; align-items:flex-end; justify-content:space-between; gap:24px;}
+  .card-date{font:500 24px/1.3 "IBM Plex Mono",monospace;}
+  .card-org{display:flex; align-items:center; gap:14px;}
+  .card-org .mark{width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font:700 20px/1 "Archivo",sans-serif; flex:none;}
+  .card-org .org-name{font:600 22px/1.3 "Work Sans",sans-serif; text-align:right; max-width:320px;}
+
+  .tpl-ivory{background:linear-gradient(175deg,#f4f1e6 0%,#e7ecdf 100%); color:#1f2b22;}
+  .tpl-ivory .card-tag{background:#1f6b4c; color:#f4f1e6;}
+  .tpl-ivory .card-title{font-family:"Fraunces",serif; font-size:76px; color:#16281f;}
+  .tpl-ivory .card-body{color:#3c4a3f;}
+  .tpl-ivory .card-footer{border-top:2px solid rgba(31,107,76,.28); padding-top:26px;}
+  .tpl-ivory .card-date{color:#1f6b4c;}
+  .tpl-ivory .card-org .mark{background:#1f6b4c; color:#f4f1e6;}
+  .tpl-ivory .card-org .org-name{color:#1f2b22;}
+
+  .tpl-navy{background:radial-gradient(120% 140% at 15% 0%,#1c2f3d 0%,#0d161e 70%); color:#f2ece0;}
+  .tpl-navy .card-tag{background:#d7a94a; color:#221705;}
+  .tpl-navy .card-title{font-family:"Archivo",sans-serif; font-weight:800; font-size:70px; color:#f7f2e6; letter-spacing:-.01em;}
+  .tpl-navy .card-body{color:#c9d3d8;}
+  .tpl-navy .card-footer{border-top:2px solid rgba(215,169,74,.4); padding-top:26px;}
+  .tpl-navy .card-date{color:#d7a94a;}
+  .tpl-navy .card-org .mark{background:#d7a94a; color:#221705;}
+  .tpl-navy .card-org .org-name{color:#f2ece0;}
+
+  .tpl-bold{background:linear-gradient(150deg,#ff8a5b 0%,#e14e79 45%,#5c2a68 100%); color:#fff8ee;}
+  .tpl-bold .card-tag{background:#ffe066; color:#4a1c1c;}
+  .tpl-bold .card-title{font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:78px; color:#fffdf8;}
+  .tpl-bold .card-body{color:#ffe9da;}
+  .tpl-bold .card-footer{border-top:2px solid rgba(255,255,255,.45); padding-top:26px;}
+  .tpl-bold .card-date{color:#ffe066;}
+  .tpl-bold .card-org .mark{background:#ffe066; color:#4a1c1c;}
+  .tpl-bold .card-org .org-name{color:#fff8ee;}
+
+  .card-canvas.size-story .card-title{font-size:64px;}
+  .card-canvas.size-story .card-body{font-size:27px;}
+
+  .lightbox{position:fixed; inset:0; background:rgba(10,14,12,.72); display:flex; align-items:center; justify-content:center; padding:26px; z-index:50;}
+  .lightbox[hidden]{display:none;}
+  .lightbox-inner{background:var(--surface); border-radius:14px; padding:18px; max-width:min(92vw,480px); max-height:88vh; overflow:auto; text-align:center;}
+  .lightbox-inner img{max-width:100%; border-radius:8px; display:block; margin:0 auto 12px;}
+  .lightbox-inner p{font-size:13px; color:var(--muted); margin:0 0 12px;}
+  .lightbox-close{border:1px solid var(--line); background:var(--surface-2); color:var(--ink); border-radius:8px; padding:8px 16px; font:13px "Work Sans",sans-serif; cursor:pointer;}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>貼文圖卡產生器</h1>
+      <p>輸入文字、選版型，產出可下載的社群貼文圖卡</p>
+    </div>
+    <a class="back" href="index.html" id="backLink">← 回工具箱首頁</a>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <div class="field">
+        <label>版型</label>
+        <div class="tpl-choices">
+          <button type="button" class="tpl-choice active" data-tpl="ivory"><span class="tpl-swatch sw-ivory"></span><span class="lbl">簡約質感</span></button>
+          <button type="button" class="tpl-choice" data-tpl="navy"><span class="tpl-swatch sw-navy"></span><span class="lbl">深色沉穩</span></button>
+          <button type="button" class="tpl-choice" data-tpl="bold"><span class="tpl-swatch sw-bold"></span><span class="lbl">活力繽紛</span></button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>尺寸</label>
+        <div class="seg">
+          <button type="button" class="active" data-size="square">正方形 1:1</button>
+          <button type="button" data-size="story">限動 9:16</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>分類標籤</label>
+        <input type="text" id="fTag" value="活動公告" maxlength="12">
+      </div>
+
+      <div class="field">
+        <label>標題</label>
+        <textarea id="fTitle" maxlength="60">澳洲遊留學說明會</textarea>
+      </div>
+
+      <div class="field">
+        <label>內文</label>
+        <textarea id="fBody" maxlength="200">帶你了解打工遊學、簽證申請與海外生活準備
+名額有限，即刻報名</textarea>
+        <p class="hint">每行會分段顯示，可換行條列重點</p>
+      </div>
+
+      <div class="field">
+        <label>日期／資訊</label>
+        <input type="text" id="fDate" value="9/20（六）14:00" maxlength="30">
+      </div>
+
+      <div class="field">
+        <label>頁尾機構名稱</label>
+        <input type="text" id="fOrg" value="大理國際遊留學" maxlength="20">
+      </div>
+
+      <button class="primary" id="downloadBtn">下載圖片</button>
+      <p class="status" id="statusMsg"></p>
+    </div>
+
+    <div class="preview-panel">
+      <div class="preview-scaler" id="previewScaler">
+        <div class="card-canvas tpl-ivory size-square" id="previewCard"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" hidden>
+  <div class="lightbox-inner">
+    <img id="lightboxImg" alt="貼文圖卡預覽">
+    <p>這個環境無法直接下載，請長按（手機）或右鍵圖片選擇「另存圖片」</p>
+    <button class="lightbox-close" id="lightboxClose">關閉</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var state = { tpl:'ivory', size:'square' };
+  var SIZES = { square:{w:1080,h:1080}, story:{w:1080,h:1920} };
+
+  var fTag=document.getElementById('fTag'), fTitle=document.getElementById('fTitle'),
+      fBody=document.getElementById('fBody'), fDate=document.getElementById('fDate'), fOrg=document.getElementById('fOrg');
+
+  function populateCard(el){
+    el.innerHTML =
+      '<span class="card-tag">'+escapeHtml(fTag.value||'')+'</span>'+
+      '<div>'+
+        '<div class="card-title">'+escapeHtml(fTitle.value||'')+'</div>'+
+        '<div class="card-body">'+escapeHtml(fBody.value||'')+'</div>'+
+      '</div>'+
+      '<div class="card-footer">'+
+        '<span class="card-date">'+escapeHtml(fDate.value||'')+'</span>'+
+        '<span class="card-org"><span class="mark">'+escapeHtml((fOrg.value||'').slice(0,1))+'</span><span class="org-name">'+escapeHtml(fOrg.value||'')+'</span></span>'+
+      '</div>';
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+  }
+
+  var previewScaler = document.getElementById('previewScaler');
+  var previewCard = document.getElementById('previewCard');
+
+  function layoutPreview(){
+    var dims = SIZES[state.size];
+    var maxW = Math.min(previewScaler.parentElement.clientWidth, 460);
+    var scale = maxW / dims.w;
+    previewScaler.style.width = (dims.w*scale)+'px';
+    previewScaler.style.height = (dims.h*scale)+'px';
+    previewCard.style.width = dims.w+'px';
+    previewCard.style.height = dims.h+'px';
+    previewCard.style.transform = 'scale('+scale+')';
+    previewCard.className = 'card-canvas tpl-'+state.tpl+' size-'+state.size;
+  }
+
+  function refresh(){ populateCard(previewCard); layoutPreview(); }
+
+  [fTag,fTitle,fBody,fDate,fOrg].forEach(function(el){ el.addEventListener('input', refresh); });
+  window.addEventListener('resize', layoutPreview);
+
+  document.querySelectorAll('.tpl-choice').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tpl-choice').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      state.tpl = btn.getAttribute('data-tpl');
+      refresh();
+    });
+  });
+  document.querySelectorAll('.seg button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.seg button').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      state.size = btn.getAttribute('data-size');
+      refresh();
+    });
+  });
+
+  refresh();
+
+  // ---- export ----
+  var downloadBtn = document.getElementById('downloadBtn');
+  var statusMsg = document.getElementById('statusMsg');
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  document.getElementById('lightboxClose').addEventListener('click', function(){ lightbox.hidden = true; });
+
+  var downloadsCap = null;
+  if (window.claude && window.claude.use){
+    window.claude.use('downloads').then(function(d){ downloadsCap = d; });
+  }
+
+  function setStatus(msg, isErr){
+    statusMsg.textContent = msg || '';
+    statusMsg.className = 'status' + (isErr ? ' err' : '');
+  }
+
+  downloadBtn.addEventListener('click', function(){
+    if (typeof html2canvas === 'undefined'){
+      setStatus('圖片產生元件載入失敗，請重新整理頁面再試一次', true);
+      return;
+    }
+    downloadBtn.disabled = true;
+    setStatus('圖片產生中…');
+
+    var dims = SIZES[state.size];
+    var hidden = document.createElement('div');
+    hidden.className = 'card-canvas tpl-'+state.tpl+' size-'+state.size;
+    hidden.style.width = dims.w+'px';
+    hidden.style.height = dims.h+'px';
+    hidden.style.position = 'fixed';
+    hidden.style.left = '-20000px';
+    hidden.style.top = '0';
+    populateCard(hidden);
+    document.body.appendChild(hidden);
+
+    var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    ready.then(function(){ return new Promise(function(res){ setTimeout(res, 60); }); })
+      .then(function(){
+        return html2canvas(hidden, { backgroundColor: null, scale: 1, useCORS: true });
+      })
+      .then(function(canvas){
+        document.body.removeChild(hidden);
+        return new Promise(function(resolve, reject){
+          canvas.toBlob(function(blob){
+            if (blob) resolve(blob); else reject(new Error('toBlob failed'));
+          }, 'image/png');
+        });
+      })
+      .then(function(blob){
+        var filename = '貼文圖卡-' + (fTitle.value||'未命名').slice(0,16) + '.png';
+        if (downloadsCap){
+          return downloadsCap.save({ filename: filename, data: blob }).then(function(){
+            setStatus('已儲存');
+          }, function(err){
+            if (err && err.code === 'declined'){ setStatus(''); return; }
+            return fallbackShow(blob);
+          });
+        }
+        return fallbackShow(blob);
+      })
+      .catch(function(e){
+        if (hidden.parentElement) document.body.removeChild(hidden);
+        setStatus('圖片產生失敗，請再試一次', true);
+      })
+      .then(function(){ downloadBtn.disabled = false; });
+  });
+
+  function fallbackShow(blob){
+    var url = URL.createObjectURL(blob);
+    if (!window.claude){ // normal website: download directly
+      var a=document.createElement('a'); a.href=url; a.download='貼文圖卡-' + (fTitle.value||'未命名').slice(0,16) + '.png';
+      document.body.appendChild(a); a.click(); a.remove(); setStatus('已下載'); return;
+    }
+    lightboxImg.src = url;
+    lightbox.hidden = false;
+    setStatus('');
+  }
+})();
+</script>
+
+</body></html>
