@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>題目練習網站</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <style>
+    :root{--blue:#2563eb;--purple:#7c3aed;--green:#059669;--red:#dc2626;--amber:#f59e0b;--ink:#0f172a;--muted:#64748b;--line:#cbd5e1;--bg:#f1f5f9;--card:#fff}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,"Noto Sans TC",sans-serif}.container{max-width:680px;min-height:100vh;margin:auto;padding:22px 18px 70px}.hidden{display:none!important}
+    h1{text-align:center;font-size:1.7rem;margin:4px 0 8px}.status{text-align:center;color:var(--muted);font-size:13px;margin-bottom:20px}.section{display:block;margin:22px 0 9px;color:var(--muted);font-size:12px;font-weight:900;letter-spacing:.08em}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:9px}.stack{display:grid;gap:8px}
+    button{font:inherit}.choice,.unit,.option{background:var(--card);border:1.5px solid #94a3b8;border-radius:11px;padding:12px;cursor:pointer;font-weight:700}.choice.active{background:var(--blue);border-color:var(--blue);color:#fff}.unit{text-align:left}.unit.active{background:#eff6ff;border-color:var(--blue)}.tag{font-size:10px;color:var(--muted);background:#e2e8f0;border-radius:4px;padding:2px 6px;margin-right:7px}
+    .slider{background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:14px 18px;margin:9px 0}.slider-head{display:flex;justify-content:space-between;font-weight:800}.slider input{width:100%;margin-top:12px}.primary{width:100%;padding:16px;border:0;border-radius:13px;background:var(--ink);color:#fff;font-weight:900;font-size:16px;margin-top:14px;cursor:pointer}.primary.purple{background:var(--purple)}.primary.amber{background:var(--amber);color:#111}.primary.gray{background:var(--muted)}
+    .header{position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:2}.meta,.between{display:flex;gap:7px;justify-content:space-between;align-items:center}.pill{font-size:12px;font-weight:900;padding:4px 9px;border:1px solid #94a3b8;border-radius:7px;background:#fff}.progress{height:8px;background:#e2e8f0;border-radius:10px;overflow:hidden;margin-top:9px}.progress>div{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple))}.card{background:#fff;border:2px solid var(--ink);border-radius:17px;padding:23px;margin:18px 0;box-shadow:0 5px 0 var(--ink)}.question{font-size:1.2rem;font-weight:750;line-height:1.55}.option{display:block;width:100%;text-align:left;margin:9px 0;font-size:16px}.option.correct{background:var(--green);border-color:var(--green);color:#fff}.option.wrong{background:var(--red);border-color:var(--red);color:#fff}.hint{margin-top:15px;padding:13px;background:#eff6ff;border-left:5px solid var(--blue);border-radius:7px;line-height:1.6}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat,.review{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:14px}.stat{text-align:center}.review{border-left:5px solid var(--red);margin:12px 0}.bad{background:#fff1f2;color:var(--red);padding:9px;border-radius:8px;margin:7px 0}.good{background:#f0fdf4;color:var(--green);padding:9px;border-radius:8px}.scope{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}.scope span{background:#eff6ff;color:var(--blue);padding:4px 9px;border-radius:6px;font-size:12px;font-weight:700}
+    .statsBanner{background:#eef2ff;border:1.5px solid #c7d2fe;color:#3730a3;border-radius:12px;padding:12px 16px;font-size:13px;font-weight:800;text-align:center;margin:6px 0 18px;line-height:1.6}
+    .historyItem{background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;margin-bottom:9px}.historyTop{display:flex;justify-content:space-between;font-weight:900;font-size:14px}.historyMeta{color:var(--muted);font-size:12px;margin-top:4px}
+    .primary.red{background:var(--red)}
+
+    /* ★ 題目編號 */
+    .qid-badge{display:inline-block;font-size:11px;font-weight:900;color:var(--muted);background:#e2e8f0;border-radius:5px;padding:2px 8px;margin-bottom:10px;letter-spacing:.04em;font-family:system-ui,monospace}
+    /* ★ 錯題卡片的編號 */
+    .review-qid{font-size:11px;font-weight:900;color:var(--muted);background:#e2e8f0;border-radius:4px;padding:1px 7px;margin-bottom:6px;display:inline-block}
+    /* ★ 複製按鈕 */
+    .copy-row{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+    .copy-btn{flex:1;min-width:140px;padding:12px;border:1.5px solid #94a3b8;border-radius:11px;background:#fff;font-weight:800;font-size:13px;cursor:pointer;transition:.15s}
+    .copy-btn:active{background:#f1f5f9}
+    .copy-btn.copied{border-color:var(--green);color:var(--green);background:#f0fdf4}
+
+    /* ★ 試題過濾 */
+    .filter-wrap{margin-top:10px}
+    .filter-textarea{width:100%;padding:11px 13px;min-height:80px;font-size:13px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-family:inherit;resize:vertical;outline:none}
+    .filter-textarea:focus{border-color:var(--blue)}
+    .filter-hint{font-size:12px;color:var(--muted);margin-top:5px}
+  </style>
+</head>
+<body>
+<main id="loading" class="container"><h1>正在載入題庫…</h1><p class="status">請稍候</p></main>
+<main id="setup" class="container hidden">
+  <h1>題目練習網站</h1>
+  <div id="status" class="status"></div>
+  <div id="statsBanner" class="statsBanner"></div>
+  <label class="section">1. 選擇科目</label><div id="subjects" class="grid"></div>
+  <label class="section">2. 選擇年級</label><div id="grades" class="grid"></div>
+  <label class="section">3. 選擇版本（可複選）</label><div id="versions" class="grid"></div>
+  <label class="section">4. 選擇單元（可複選）</label><div id="units" class="stack"></div>
+  <label class="section">5. 設定題數</label>
+  <div class="slider"><div class="slider-head"><span>是非題</span><span id="tfValue">0</span></div><input id="tf" type="range" min="0" max="0" step="5" value="0"></div>
+  <div class="slider"><div class="slider-head"><span>選擇題</span><span id="mcValue">0</span></div><input id="mc" type="range" min="0" max="0" step="5" value="0"></div>
+  <!-- ★ 試題過濾 -->
+  <label class="section">🚫 試題過濾（選填）</label>
+  <div class="filter-wrap">
+    <textarea class="filter-textarea" id="excludeInput" placeholder="貼上想排除的題目清單（格式同複製出來的錯題），這些題目不會出現在本次測驗。"></textarea>
+    <div class="filter-hint" id="filterHint">未套用過濾</div>
+  </div>
+  <button id="start" class="primary">開始作答</button>
+  <button id="viewHistory" class="primary gray" type="button">查看練習紀錄</button>
+</main>
+<main id="history" class="container hidden">
+  <h1>練習紀錄</h1>
+  <div id="historySummary" class="statsBanner"></div>
+  <div id="historyList" class="stack"></div>
+  <button id="clearHistory" class="primary red" type="button">清除紀錄</button>
+  <button class="primary gray" type="button" onclick="show('setup')">返回</button>
+</main>
+<main id="quiz" class="container hidden">
+  <div class="header">
+    <div class="meta">
+      <span id="qVersion" class="pill"></span>
+      <span id="qUnit" class="pill"></span>
+      <span id="accuracy" class="pill">100%</span>
+    </div>
+    <div class="between" style="margin-top:9px;font-weight:800;font-size:13px">
+      <span id="counter"></span>
+      <span id="timer">00:00</span>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+  </div>
+  <div class="card">
+    <!-- ★ 題目編號顯示在題幹上方 -->
+    <div id="qidBadge" class="qid-badge"></div>
+    <div id="question" class="question"></div>
+    <div id="hint" class="hint hidden"></div>
+  </div>
+  <div id="options"></div>
+  <button id="next" class="primary hidden">下一題</button>
+</main>
+<main id="result" class="container hidden" style="text-align:center">
+  <h1 id="score" style="font-size:3.3rem"></h1>
+  <p id="message" class="status"></p>
+  <div class="stats">
+    <div class="stat"><small>作答時間</small><strong id="finalTime" style="display:block;font-size:22px"></strong></div>
+    <div class="stat"><small>答對題數</small><strong id="finalCount" style="display:block;font-size:22px"></strong></div>
+  </div>
+  <div id="scope" class="scope"></div>
+  <!-- ★ 複製按鈕列 -->
+  <div class="copy-row" id="copyRow" style="display:none">
+    <button class="copy-btn" id="copyAllBtn" onclick="copyList('all')">📋 複製本次所有題目</button>
+    <button class="copy-btn" id="copyWrongBtn" onclick="copyList('wrong')">❌ 複製錯題清單</button>
+  </div>
+  <div id="reviews" style="text-align:left"></div>
+  <button id="retry" class="primary purple hidden">重做錯題</button>
+  <button id="retryWeak" class="primary amber hidden">練習最弱單元</button>
+  <button class="primary gray" onclick="location.reload()">返回重新設定</button>
+</main>
+<script>
+const csvUrl='https://docs.google.com/spreadsheets/d/e/2PACX-1vT0F57Z7uqlwZpPmcaWMDpz4Z49WxqbwEWgVUcBAkEyCLT3nSm2LfdJFJrViqW41dBuOPOsiwXN9NBY/pub?output=csv';
+const $=id=>document.getElementById(id),clean=v=>String(v??'').replace(/[''＇]/g,"'").trim(),unique=a=>[...new Set(a)].filter(Boolean).sort((a,b)=>a.localeCompare(b,'zh-Hant',{numeric:true}));
+const field=(row,names)=>{for(const name of names)if(clean(row[name]))return clean(row[name]);return ''};
+let bank=[],pool=[],wrong=[],idx=0,correct=0,seconds=0,tick,weakId='';
+const cfg={subject:'',grade:'',versions:[],units:[]};
+function show(id){['loading','setup','quiz','result','history'].forEach(x=>$(x).classList.toggle('hidden',x!==id))}
+
+function parseRow(r,rowNum){
+  const opts=[1,2,3,4].map(n=>field(r,[`選項${n}`,`答案${n}`,`option${n}`,`Option ${n}`])).filter(Boolean);
+  const answerRaw=field(r,['正確答案','正確選項','答案','answer','Answer']);
+  const answer=Number(answerRaw||'1');
+  if(!opts.length&&(answer===1||answer===2))opts.push('是','否');
+  return {
+    // ★ 記錄 Sheets 行號（rowNum 是資料第幾筆，+2 是因為第1列是標題）
+    rowId: rowNum + 2,
+    q:field(r,['題幹','題目','問題','question','Question']),
+    a:answer,
+    subject:field(r,['科目','學科','subject','Subject']),
+    grade:field(r,['年級','grade','Grade']),
+    version:field(r,['版本','版別','version','Version']),
+    unit:field(r,['單元','章節','unit','Unit']),
+    hint:field(r,['解析','提示','說明','explanation','hint']),
+    opts,isTF:opts.length===2
+  };
+}
+
+function loadRows(rows,source){
+  const all=rows.map((r,i)=>parseRow(r,i));
+  bank=all.filter(q=>q.q&&q.subject&&q.grade&&q.version&&q.unit&&q.opts.length>=2&&Number.isInteger(q.a)&&q.a>0&&q.a<=q.opts.length);
+  if(!bank.length){alert('找不到可用題目，請確認欄位名稱與資料內容。');return false}
+  cfg.subject='';cfg.grade='';cfg.versions=[];cfg.units=[];
+  $('grades').innerHTML='';$('versions').innerHTML='';$('units').innerHTML='';
+  $('status').textContent=`${source}：已載入 ${bank.length.toLocaleString()} 題`+(all.length>bank.length?`，略過 ${all.length-bank.length} 筆格式不完整資料`:'');
+  renderChoices('subjects',unique(bank.map(q=>q.subject)),'subject');
+  show('setup');return true
+}
+
+Papa.parse(csvUrl,{download:true,header:true,skipEmptyLines:true,transformHeader:h=>clean(h),
+  complete:r=>{if(!loadRows(r.data,'線上題庫'))loadError('找不到可用題目。請確認試算表欄位名稱與公開權限。')},
+  error:()=>loadError('線上題庫載入失敗，請檢查網路及 Google Sheets 的公開權限。')});
+
+function loadError(msg){$('loading').innerHTML=`<h1>載入失敗</h1><p class="status">${escapeHtml(msg)}</p><button class="primary" onclick="location.reload()">重新載入</button>`}
+function renderChoices(id,items,key){$(id).innerHTML='';items.forEach(value=>{const b=document.createElement('button');b.className='choice';b.textContent=value;b.onclick=()=>select(key,value,b);$(id).append(b)})}
+function select(key,value,b){
+  if(key==='versions'){cfg.versions=cfg.versions.includes(value)?cfg.versions.filter(x=>x!==value):[...cfg.versions,value];b.classList.toggle('active');renderUnits();return}
+  b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');cfg[key]=value;
+  if(key==='subject'){cfg.grade='';cfg.versions=[];cfg.units=[];renderChoices('grades',unique(bank.filter(q=>q.subject===value).map(q=>q.grade)),'grade');$('versions').innerHTML='';$('units').innerHTML=''}
+  else{cfg.versions=[];cfg.units=[];renderChoices('versions',unique(bank.filter(q=>q.subject===cfg.subject&&q.grade===value).map(q=>q.version)),'versions');$('units').innerHTML=''}
+  updateCounts()
+}
+function uid(q){return [q.subject,q.grade,q.version,q.unit].join('|')}
+function renderUnits(){
+  cfg.units=cfg.units.filter(id=>bank.some(q=>uid(q)===id&&cfg.versions.includes(q.version)));
+  const data=[];bank.filter(q=>q.subject===cfg.subject&&q.grade===cfg.grade&&cfg.versions.includes(q.version)).forEach(q=>{if(!data.some(x=>x.id===uid(q)))data.push({id:uid(q),version:q.version,unit:q.unit})});
+  $('units').innerHTML='';
+  data.forEach(u=>{const b=document.createElement('button');b.className='unit'+(cfg.units.includes(u.id)?' active':'');b.innerHTML=`<span class="tag">${escapeHtml(u.version)}</span>${escapeHtml(u.unit)}`;b.onclick=()=>{cfg.units=cfg.units.includes(u.id)?cfg.units.filter(x=>x!==u.id):[...cfg.units,u.id];b.classList.toggle('active');updateCounts()};$('units').append(b)});
+  updateCounts()
+}
+function updateCounts(){const selected=bank.filter(q=>cfg.units.includes(uid(q)));setSlider('tf',selected.filter(q=>q.isTF).length,0);setSlider('mc',selected.filter(q=>!q.isTF).length,10)}
+function setSlider(id,max,preferred){const el=$(id),old=Number(el.value);el.max=Math.min(50,max);el.value=Math.min(max,old||preferred);$(id+'Value').textContent=el.value}
+['tf','mc'].forEach(id=>$(id).oninput=()=>$(id+'Value').textContent=$(id).value);
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+// ── 本地練習紀錄 ──
+const HISTORY_KEY='quizHistoryV1';
+function loadHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY))||[]}catch{return[]}}
+function saveHistory(h){try{localStorage.setItem(HISTORY_KEY,JSON.stringify(h))}catch{}}
+function aggregateStats(h){const total=h.reduce((s,r)=>s+r.total,0),correctSum=h.reduce((s,r)=>s+r.correct,0);return{total,correct:correctSum,acc:total?Math.round(correctSum/total*100):0,count:h.length}}
+function renderStatsBanner(){const{total,acc,count}=aggregateStats(loadHistory());$('statsBanner').textContent=total?`已累計練習 ${total} 題，整體正確率 ${acc}%（共 ${count} 次測驗）`:'尚未有練習紀錄，開始你的第一次測驗吧！'}
+function addHistoryRecord(rec){const h=loadHistory();h.push(rec);if(h.length>300)h.splice(0,h.length-300);saveHistory(h);renderStatsBanner()}
+function modeLabel(m){return m==='wrong'?'重做錯題':m==='weak'?'弱點單元複習':'一般測驗'}
+function renderHistoryScreen(){const h=loadHistory().slice().reverse();const agg=aggregateStats(h);$('historySummary').textContent=agg.total?`累計練習 ${agg.total} 題，整體正確率 ${agg.acc}%（共 ${agg.count} 次測驗）`:'目前沒有任何練習紀錄';$('historyList').innerHTML=h.length?h.map(r=>`<div class="historyItem"><div class="historyTop"><strong>${escapeHtml(r.dateLabel)}</strong><span>${r.accuracy}%</span></div><div class="historyMeta">${escapeHtml(r.scope)} · ${modeLabel(r.mode)} · ${r.correct}/${r.total} 題</div></div>`).join(''):'<p class="status">還沒有作答紀錄</p>'}
+$('viewHistory').onclick=()=>{renderHistoryScreen();show('history')};
+$('clearHistory').onclick=()=>{if(confirm('確定要清除本機所有練習紀錄嗎？此動作無法復原。')){saveHistory([]);renderStatsBanner();renderHistoryScreen()}};
+renderStatsBanner();
+
+let currentMode='normal';
+$('start').onclick=()=>start('normal');$('retry').onclick=()=>start('wrong');$('retryWeak').onclick=()=>start('weak');
+
+function start(mode){
+  currentMode=mode;
+  if(mode==='normal'){
+    if(!cfg.units.length)return alert('請至少選擇一個單元。');
+    let base=bank.filter(q=>cfg.units.includes(uid(q)));
+
+    // ★ 試題過濾
+    const excludeRaw=$('excludeInput').value.trim();
+    if(excludeRaw){
+      const lines=excludeRaw.split('\n').map(l=>l.replace(/^\d+[\.\、\:\#]*\s*/,'').trim()).filter(Boolean);
+      const before=base.length;
+      base=base.filter(q=>!lines.some(line=>q.q.includes(line)||line.includes(q.q.slice(0,12))));
+      const removed=before-base.length;
+      $('filterHint').textContent=removed>0?`已排除 ${removed} 題`:'未比對到符合題目，過濾未生效';
+    }
+
+    pool=shuffle([...shuffle(base.filter(q=>q.isTF)).slice(0,+$('tf').value),...shuffle(base.filter(q=>!q.isTF)).slice(0,+$('mc').value)]);
+  } else if(mode==='wrong'){
+    pool=shuffle(wrong.map(w=>w.question));
+  } else {
+    pool=shuffle(bank.filter(q=>uid(q)===weakId)).slice(0,15);
+  }
+  if(!pool.length)return alert('目前的設定沒有可用題目。');
+  idx=0;correct=0;seconds=0;wrong=[];
+  clearInterval(tick);$('timer').textContent='00:00';
+  tick=setInterval(()=>{seconds++;$('timer').textContent=formatTime(seconds)},1000);
+  show('quiz');renderQuestion()
+}
+
+function renderQuestion(){
+  const q=pool[idx];
+  $('qVersion').textContent=q.version;
+  $('qUnit').textContent=q.unit;
+  $('counter').textContent=`${idx+1} / ${pool.length}`;
+  $('bar').style.width=`${idx/pool.length*100}%`;
+  // ★ 顯示題目編號
+  $('qidBadge').textContent=`#${q.rowId}`;
+  $('question').textContent=q.q;
+  $('hint').classList.add('hidden');
+  $('next').classList.add('hidden');
+  updateAccuracy(idx);
+  const pairs=q.opts.map((text,i)=>({text,correct:i+1===q.a}));
+  if(!q.isTF)shuffle(pairs);
+  $('options').innerHTML='';
+  pairs.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='option';b.textContent=p.text;
+    b.onclick=()=>{
+      [...$('options').children].forEach(x=>x.disabled=true);
+      if(p.correct){b.classList.add('correct');correct++}
+      else{
+        b.classList.add('wrong');
+        [...$('options').children].forEach((x,i)=>{if(pairs[i].correct)x.classList.add('correct')});
+        wrong.push({question:q,studentAnswer:p.text});
+      }
+      if(q.hint){$('hint').textContent='解析：'+q.hint;$('hint').classList.remove('hidden')}
+      updateAccuracy(idx+1);
+      $('bar').style.width=`${(idx+1)/pool.length*100}%`;
+      $('next').classList.remove('hidden')
+    };
+    $('options').append(b)
+  })
+}
+
+function updateAccuracy(done){$('accuracy').textContent=(done?Math.round(correct/done*100):100)+'%'}
+$('next').onclick=()=>{idx++;idx<pool.length?renderQuestion():finish()};
+
+// ★ 一鍵複製（全部題目 / 只有錯題）
+window._copyText={all:'',wrong:''};
+function copyList(type){
+  const text=window._copyText[type];
+  if(!text)return;
+  navigator.clipboard.writeText(text).catch(()=>{const t=document.createElement('textarea');t.value=text;t.style.cssText='position:fixed;opacity:0';document.body.append(t);t.select();document.execCommand('copy');t.remove()});
+  const btn=$(type==='all'?'copyAllBtn':'copyWrongBtn');
+  btn.classList.add('copied');btn.textContent='✅ 已複製！';
+  setTimeout(()=>{btn.classList.remove('copied');btn.textContent=type==='all'?'📋 複製本次所有題目':'❌ 複製錯題清單'},2000)
+}
+
+function finish(){
+  clearInterval(tick);show('result');
+  const pct=Math.round(correct/pool.length*100);
+  const scopeLabel=cfg.subject?`${cfg.subject}${cfg.grade?' '+cfg.grade:''}`:unique(pool.map(q=>`[${q.version}] ${q.unit}`)).join('、');
+  addHistoryRecord({dateLabel:new Date().toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),scope:scopeLabel,total:pool.length,correct,accuracy:pct,mode:currentMode});
+  $('score').textContent=pct+'%';
+  $('message').textContent=pct===100?'太棒了，全部答對！':'看看錯題解析，再挑戰一次。';
+  $('finalTime').textContent=formatTime(seconds);
+  $('finalCount').textContent=`${correct} / ${pool.length}`;
+  $('scope').innerHTML=unique(pool.map(q=>`[${q.version}] ${q.unit}`)).map(x=>`<span>${escapeHtml(x)}</span>`).join('');
+
+  // ★ 建立複製文字
+  window._copyText.all='【本次所有題目】\n'+pool.map((q,i)=>`${i+1}. #${q.rowId} ${q.q}`).join('\n');
+  window._copyText.wrong=wrong.length?'【錯題清單】\n'+wrong.map((w,i)=>`${i+1}. #${w.question.rowId} ${w.question.q}`).join('\n'):'';
+
+  // ★ 複製按鈕：有題目就顯示
+  const copyRow=$('copyRow');
+  copyRow.style.display=pool.length?'flex':'none';
+  $('copyWrongBtn').style.display=wrong.length?'':'none';
+  // 重置按鈕文字
+  $('copyAllBtn').textContent='📋 複製本次所有題目';$('copyAllBtn').classList.remove('copied');
+  $('copyWrongBtn').textContent='❌ 複製錯題清單';$('copyWrongBtn').classList.remove('copied');
+
+  // ★ 錯題複習（帶題目編號）
+  $('reviews').innerHTML=wrong.length?'<h3>錯題複習</h3>'+wrong.map((w,i)=>`
+    <article class="review">
+      <div class="review-qid">#${w.question.rowId}</div>
+      <strong>Q${i+1}. ${escapeHtml(w.question.q)}</strong>
+      <div class="bad">❌ 你的答案：${escapeHtml(w.studentAnswer)}</div>
+      <div class="good">✅ 正確答案：${escapeHtml(w.question.opts[w.question.a-1])}</div>
+      ${w.question.hint?`<div class="hint">解析：${escapeHtml(w.question.hint)}</div>`:''}
+    </article>`).join(''):'';
+
+  $('retry').classList.toggle('hidden',!wrong.length);
+  $('retryWeak').classList.toggle('hidden',!wrong.length);
+  if(wrong.length){
+    const counts={};wrong.forEach(w=>counts[uid(w.question)]=(counts[uid(w.question)]||0)+1);
+    weakId=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0]
+  }
+}
+
+function formatTime(s){return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
+function escapeHtml(s){return clean(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+</script>
+</body>
+</html>

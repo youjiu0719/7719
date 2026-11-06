@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>題庫轉換器 — 康軒 × 南一 × 翰林</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #fff;
+    --border: #e0ddd5;
+    --accent: #2d6a4f;
+    --accent2: #52b788;
+    --accent-light: #d8f3dc;
+    --text: #1b1b1b;
+    --muted: #777;
+    --danger: #c0392b;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+    --r: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', "Microsoft JhengHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 28px 20px;
+  }
+
+  .wrapper { max-width: 1300px; margin: 0 auto; }
+
+  header { margin-bottom: 20px; }
+  header h1 { font-size: 21px; font-weight: 700; color: var(--accent); }
+  header p  { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.6; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+  }
+
+  /* ── 格式選擇 ── */
+  .fmt-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+
+  .fmt-btn {
+    padding: 5px 15px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; background: #fff;
+    color: var(--muted); font-family: inherit;
+    transition: all 0.15s;
+  }
+  .fmt-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ── 中繼資料欄位 ── */
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .meta-field label {
+    display: block;
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    margin-bottom: 4px; letter-spacing: 0.05em;
+  }
+
+  .meta-field input, .meta-field select {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-family: inherit; font-size: 13px;
+    background: #fafaf8; color: var(--text);
+    outline: none; transition: border-color 0.2s;
+  }
+  .meta-field input:focus, .meta-field select:focus { border-color: var(--accent2); }
+
+  /* ── textarea ── */
+  textarea {
+    width: 100%; height: 240px;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 13px;
+    font-family: 'Noto Sans TC', "Microsoft JhengHei", monospace;
+    font-size: 13px; line-height: 1.7;
+    resize: vertical; background: #fafaf8; color: var(--text);
+    outline: none; transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--accent2); }
+
+  /* ── toolbar ── */
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 13px; }
+
+  button {
+    padding: 9px 20px; border: none; border-radius: 6px;
+    cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 700;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  button:active { transform: scale(0.97); }
+  .btn-run  { background: var(--accent);  color: #fff; }
+  .btn-copy { background: var(--accent2); color: #fff; }
+  .btn-csv  { background: #fff; color: var(--accent); border: 1.5px solid var(--accent); }
+  .btn-clear{ background: #fff; color: var(--danger);  border: 1.5px solid var(--border); margin-left: auto; }
+
+  /* ── stats ── */
+  .stats {
+    font-size: 12px; color: var(--muted);
+    display: flex; gap: 14px; align-items: center; margin-top: 12px;
+  }
+  .stats strong { color: var(--accent); }
+  .det-tag {
+    font-size: 11px; background: var(--accent-light); color: var(--accent);
+    padding: 2px 8px; border-radius: 10px; font-weight: 700; margin-left: auto;
+  }
+
+  /* ── table ── */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; line-height: 1.55; }
+
+  thead tr { background: var(--accent); color: #fff; }
+  thead th {
+    padding: 10px 11px; text-align: left;
+    font-weight: 700; white-space: nowrap; font-size: 11px; letter-spacing: 0.05em;
+  }
+
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:hover { background: #f9f9f7; }
+  tbody tr:last-child { border-bottom: none; }
+
+  td { padding: 8px 11px; vertical-align: top; }
+  td.q-cell { max-width: 320px; word-break: break-all; }
+  td.ans-cell { text-align: center; font-weight: 700; color: var(--accent); white-space: nowrap; }
+  td.note-cell { max-width: 200px; font-size: 12px; color: #555; word-break: break-all; }
+
+  .no-data { text-align: center; color: var(--muted); padding: 36px; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <h1>📚 題庫轉換器</h1>
+    <p>支援 <strong>康軒</strong>（《答案》３）、<strong>南一</strong>（答案：①）、<strong>翰林</strong>（答案：○４）、<strong>龍騰</strong>（解答　C）。自動抓詳解，中繼資料套用全部題目。</p>
+  </header>
+
+  <!-- ① 設定 -->
+  <div class="card">
+    <div class="card-title">版本 & 中繼資料</div>
+
+    <div class="fmt-row">
+      <button class="fmt-btn active" id="btn-auto" onclick="setFmt('auto')">🔍 自動偵測</button>
+      <button class="fmt-btn" id="btn-kx" onclick="setFmt('kx')">康軒</button>
+      <button class="fmt-btn" id="btn-nl" onclick="setFmt('nl')">南一</button>
+      <button class="fmt-btn" id="btn-hl" onclick="setFmt('hl')">翰林</button>
+      <button class="fmt-btn" id="btn-lt" onclick="setFmt('lt')">龍騰</button>
+    </div>
+
+    <div class="meta-grid">
+      <div class="meta-field">
+        <label>科目</label>
+        <input id="m-subject" placeholder="例：國語、自然" />
+      </div>
+      <div class="meta-field">
+        <label>版本</label>
+        <input id="m-publisher" placeholder="例：翰林、南一" />
+      </div>
+      <div class="meta-field">
+        <label>年級</label>
+        <select id="m-grade">
+          <option value="">— 請選 —</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+        </select>
+      </div>
+      <div class="meta-field" style="grid-column: span 2;">
+        <label>單元</label>
+        <input id="m-unit" placeholder="例：第3課 岩石和土壤" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 輸入 -->
+  <div class="card">
+    <div class="card-title">貼上原始題目</div>
+    <textarea id="inputText" placeholder="直接貼上題庫內容（康軒 / 南一 / 翰林 格式均可）…"></textarea>
+
+    <div class="toolbar">
+      <button class="btn-run"   onclick="run()">⚡ 開始轉換</button>
+      <button class="btn-copy"  onclick="copyTable()">📋 複製表格</button>
+      <button class="btn-csv"   onclick="downloadCSV()">⬇ 下載 CSV</button>
+      <button class="btn-clear" onclick="clearAll()">✕ 清除</button>
+    </div>
+
+    <div class="stats" id="stats" style="display:none">
+      <span>共 <strong id="totalCount">0</strong> 題</span>
+      <span class="det-tag" id="detectedFmt"></span>
+    </div>
+  </div>
+
+  <!-- ③ 結果 -->
+  <div class="card" id="resultCard" style="display:none">
+    <div class="card-title">轉換結果</div>
+    <div class="table-wrap">
+      <table id="targetTable">
+        <thead>
+          <tr>
+            <th>題目</th><th>答案</th>
+            <th>選項①</th><th>選項②</th><th>選項③</th><th>選項④</th>
+            <th>科目</th><th>版本</th><th>年級</th><th>單元</th><th>詳解</th>
+          </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  全域狀態
+// ════════════════════════════════════════════════════════
+let parsedRows = [];
+let currentFmt = 'auto';
+
+// ── 共用工具 ─────────────────────────────────────────────
+const toHalf = s => s
+  .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+  .replace(/[Ａ-Ｄ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+
+// ①②③④ → 1234
+const circleNum = s => s
+  .replace(/①/g,'1').replace(/②/g,'2').replace(/③/g,'3').replace(/④/g,'4')
+  .replace(/❶/g,'1').replace(/❷/g,'2').replace(/❸/g,'3').replace(/❹/g,'4');
+
+// ○1 ○2 ○3 ○4 → 1 2 3 4  (翰林答案格式)
+const circleDigit = s => s.replace(/[○◎]([1-4４３２１])/g, (_,d) => toHalf(d));
+
+const cleanAns = s => {
+  let r = circleDigit(circleNum(s)).replace(/[，、；]/g,',').trim();
+  // 是非答案 ○→1  ╳→2
+  r = r.replace(/○/g,'1').replace(/╳/g,'2');
+  // (A)(B)(C)(D) 或 A B C D → 1234（含全形括號）
+  r = r.replace(/[（(]([A-Da-d])[）)]/g, (_,c) => String('ABCDabcd'.indexOf(c) % 4 + 1));
+  r = r.replace(/^([A-D])$/i, c => String('ABCDabcd'.indexOf(c) % 4 + 1));
+  return r;
+};
+
+// 忽略行
+const isSkip = l =>
+  /^[一二三四五六七八九十]+[、，。：:]\s*(選擇|是非|判斷|填充|文意|課文|字詞|語詞|測驗|閱讀|每題|每格)/.test(l) ||
+  /^每格|每題|共.*分/.test(l) ||
+  /^\[滿分|^\s*$/.test(l) ||
+  /^[A-Z]{2}_/.test(l);
+
+// ── 格式偵測 ─────────────────────────────────────────────
+function detectFmt(raw) {
+  const kx = (raw.match(/《答案》/g)||[]).length;
+  const nl = (raw.match(/答案[：:]\s*[①-④]/g)||[]).length;
+  const hl = (raw.match(/答案[：:]\s*[○◎][1-4]/g)||[]).length +
+             (raw.match(/○[1-4][　\s]/g)||[]).length * 0.3;
+  const lt = (raw.match(/解答\s*[A-D]/g)||[]).length;
+  const best = Math.max(kx, nl, hl, lt);
+  if (best === 0) return 'nl';
+  if (lt === best) return 'lt';
+  if (kx === best) return 'kx';
+  if (nl >= hl)   return 'nl';
+  return 'hl';
+}
+
+// ════════════════════════════════════════════════════════
+//  康軒解析器
+//  選項：①A②B③C④D 夾在題目文字中
+//  答案：《答案》３
+// ════════════════════════════════════════════════════════
+function parseKX(raw) {
+  const rows = [];
+  const text = toHalf(raw);
+
+  const ansPat = /《答案》([^\n]+)/g;
+  const ansAll = [];
+  let m;
+  while ((m = ansPat.exec(text)) !== null)
+    ansAll.push({ pos: m.index, end: m.index + m[0].length, val: m[1].trim() });
+
+  const qPat = /(?:^|\n)[ \t]*(\d+)[.．]?[ \t]*[（(][　 ]*[)）]/gm;
+  const qAll = [];
+  while ((m = qPat.exec(text)) !== null)
+    qAll.push({ pos: m.index, bodyStart: m.index + m[0].length });
+
+  qAll.forEach((q, qi) => {
+    const nextPos = qi+1 < qAll.length ? qAll[qi+1].pos : text.length;
+    const ans = ansAll.find(a => a.pos > q.pos && a.pos < nextPos);
+    if (!ans) return;
+
+    // 詳解在《答案》之後、下一題之前（支援「詳解：」和「解析：」）
+    let note = '';
+    const afterAns = text.slice(ans.end, nextPos);
+    const noteMatch = afterAns.match(/(?:詳解|解析)[：:]\s*([^\n]+)/);
+    if (noteMatch) note = noteMatch[1].trim();
+
+    let body = text.slice(q.bodyStart, ans.pos).trim();
+    body = body.replace(/^[一二三四五六七八九十]+[、，。：:].*$/mg,'').trim();
+
+    const optPat = /[①②③④]([^①②③④《\n]+)/g;
+    const opts = []; let om;
+    while ((om = optPat.exec(body)) !== null)
+      opts.push(om[1].trim().replace(/[。；，\s]+$/,''));
+
+    let title = body.replace(/[①②③④][^①②③④《\n]+/g,'').replace(/\n+/g,' ').trim();
+    if (!title) return;
+
+    // 是非題補選項
+    if (opts.length === 0) opts.push('○', '╳');
+
+    rows.push({ title, ans: cleanAns(ans.val), opts, note: note.trim() });
+  });
+  return rows;
+}
+
+// ════════════════════════════════════════════════════════
+//  南一解析器
+//  選項：①A ②B ③C 在題目行末尾或下一行
+//  答案：答案：①
+// ════════════════════════════════════════════════════════
+function parseNL(raw) {
+  const rows = [];
+  const text = toHalf(raw);
+  const lines = text.split('\n').map(l => l.trim());
+
+  // 支援兩種題號格式：
+  //   1. (　　) 題目...   ← 數字在前
+  //   (　　)1. 題目...   ← 括號在前
+  const Q_RE   = /^(?:[（(][　 ]*[)）]\s*)?(\d+)[.．]?(?:\s*[（(][　 ]*[)）])?/;
+  const ANS_RE = /答案[：:]\s*(.+)/;
+  const NOTE_RE = /^(?:詳解|解析)[：:]\s*(.*)/;
+
+  const blocks = [];
+  let cur = null;
+  for (const l of lines) {
+    if (!l || isSkip(l)) { if (cur) cur.push(l); continue; }
+    if (Q_RE.test(l)) { if (cur) blocks.push(cur); cur = [l]; }
+    else if (cur) cur.push(l);
+  }
+  if (cur) blocks.push(cur);
+
+  blocks.forEach(blk => {
+    const ansIdx = blk.findIndex(l => ANS_RE.test(l));
+    if (ansIdx === -1) return;
+
+    const ansVal = cleanAns(blk[ansIdx].match(ANS_RE)[1]);
+
+    // 詳解：答案行之後找解析行
+    let note = '';
+    for (let i = ansIdx+1; i < blk.length; i++) {
+      const nm = blk[i].match(NOTE_RE);
+      if (nm) { note = nm[1]; break; }
+    }
+
+    const relevant = blk.slice(0, ansIdx).filter(l => !NOTE_RE.test(l));
+    const joined = relevant.join(' ');
+
+    // 支援兩種選項格式：①②③④ 或 (A)(B)(C)(D)
+    const firstCircle = joined.search(/[①②③④]/);
+    const firstAlpha  = joined.search(/[（(][A-Da-d][）)]/);
+    const firstOpt = firstCircle === -1 ? firstAlpha
+                   : firstAlpha  === -1 ? firstCircle
+                   : Math.min(firstCircle, firstAlpha);
+
+    let titleRaw = firstOpt === -1 ? joined : joined.slice(0, firstOpt);
+    let optRaw   = firstOpt === -1 ? '' : joined.slice(firstOpt);
+
+    let title = titleRaw
+      .replace(/^[（(][　 ]*[)）]\s*\d+[.．]?\s*/,'')
+      .replace(/^\d+[.．]?\s*[（(][　 ]*[)）]\s*/,'')
+      .replace(/\s+/g,' ').trim();
+    if (!title) return;
+
+    let optPat, opts = [], om;
+    if (/[①②③④]/.test(optRaw)) {
+      optPat = /[①②③④]([^①②③④答\n]+)/g;
+    } else {
+      optPat = /[（(][A-Da-d][）)]\s*([^（(答\n]+)/g;
+    }
+    while ((om = optPat.exec(optRaw)) !== null)
+      opts.push(om[1].trim().replace(/[。；，\s]+$/,''));
+
+    rows.push({ title, ans: ansVal, opts: opts.length ? opts : ['○','╳'], note });
+  });
+  return rows;
+}
+
+// ════════════════════════════════════════════════════════
+//  翰林解析器
+//  是非題選項：無（答案 ○ / ╳）
+//  選擇題選項：○１A　○２B　○３C　○４D 夾在題目裡
+//  答案：答案：○４  或  答案：○
+//  解析：解析：... → 詳解欄
+// ════════════════════════════════════════════════════════
+function parseHL(raw) {
+  const rows = [];
+  const text = toHalf(raw);
+  const lines = text.split('\n').map(l => l.trim());
+
+  // 題號：1.	(   ) 或 1. (   )
+  const Q_RE   = /^(\d+)[.．]?\s*[（(][\s　]*[)）]/;
+  const ANS_RE = /^答案[：:]\s*(.+)/;
+  const NOTE_RE = /^(?:詳解|解析)[：:]\s*(.*)/;
+
+  const blocks = [];
+  let cur = null;
+  for (const l of lines) {
+    if (!l || isSkip(l)) { if (cur) cur.push(l); continue; }
+    if (Q_RE.test(l)) { if (cur) blocks.push(cur); cur = [l]; }
+    else if (cur) cur.push(l);
+  }
+  if (cur) blocks.push(cur);
+
+  blocks.forEach(blk => {
+    const ansIdx = blk.findIndex(l => ANS_RE.test(l));
+    if (ansIdx === -1) return;
+
+    const ansRaw = blk[ansIdx].match(ANS_RE)[1].trim();
+    // ○ → 1 (是), ╳ → 2 (非), ○4 → 4 (選擇)
+    let ansVal;
+    if (/^[○╳]$/.test(ansRaw)) {
+      ansVal = ansRaw === '○' ? '1' : '2'; // 是非
+    } else {
+      ansVal = circleDigit(ansRaw).replace(/[^1-4,]/g,'').trim();
+    }
+
+    // 詳解
+    let note = '';
+    for (let i = ansIdx+1; i < blk.length; i++) {
+      const nm = blk[i].match(NOTE_RE);
+      if (nm) { note = nm[1]; break; }
+    }
+
+    const relevant = blk.slice(0, ansIdx).filter(l => !NOTE_RE.test(l));
+    const joined = relevant.join(' ');
+
+    // 翰林選項格式：○1xxx ○2xxx ○3xxx ○4xxx
+    // 找第一個 ○數字
+    const firstOpt = joined.search(/[○◎][1-4]/);
+
+    let titleRaw = firstOpt === -1 ? joined : joined.slice(0, firstOpt);
+    let optRaw   = firstOpt === -1 ? '' : joined.slice(firstOpt);
+
+    let title = titleRaw
+      .replace(/^\d+[.．]?\s*[（(][\s　]*[)）]\s*/,'').replace(/\s+/g,' ').trim();
+    if (!title) return;
+
+    // 抓選項：○1文字 ○2文字 ...
+    const optPat = /[○◎][1-4]\s*([^○◎答解\n]+)/g;
+    const opts = []; let om;
+    while ((om = optPat.exec(optRaw)) !== null)
+      opts.push(om[1].trim().replace(/[。；，\s]+$/,''));
+
+    rows.push({ title, ans: ansVal, opts: opts.length ? opts : ['○','╳'], note });
+  });
+  return rows;
+}
+
+// ════════════════════════════════════════════════════════
+//  龍騰解析器
+//  題號：1. （　　）題目 (A) A選項　(B) B選項　(C) C選項　(D) D選項
+//  來源標籤：【龍騰自命題】【習作簿】等 → 忽略
+//  答案：解答　C（獨立行）
+//  解析：解析　...（獨立行）
+//  忽略：文意選填大題（偵測到「文意選填」大標題後跳過直到下一個選擇題大題）
+// ════════════════════════════════════════════════════════
+function parseLT(raw) {
+  const rows = [];
+  const text = toHalf(raw);
+  const lines = text.split('\n').map(l => l.trim());
+
+  // 題目開頭：1. （　　） 或 （　　）1.
+  const Q_RE    = /^(?:[（(][　 ]*[)）]\s*)?(\d+)[.．]?(?:\s*[（(][　 ]*[)）])?/;
+  const ANS_RE  = /^(?:解答|答案)\s+([A-D])/i;
+  const NOTE_RE = /^(?:解析|詳解)\s+(.*)/;
+  const SRC_RE  = /^【.+】$/;   // 【龍騰自命題】等來源標籤
+  // 文意選填偵測：大標題含「文意選填」「克漏字」「閱讀測驗」→ 跳過整個大題
+  const SKIP_SECTION_RE = /^[一二三四五六七八九十]+[、，。：:]\s*(文意選填|克漏字|閱讀測驗)/;
+  const NEW_SECTION_RE  = /^[一二三四五六七八九十]+[、，。：:]/;
+
+  let skipSection = false;
+  const blocks = [];
+  let cur = null;
+
+  for (const l of lines) {
+    if (!l) { if (cur) cur.push(l); continue; }
+
+    // 大題切換
+    if (NEW_SECTION_RE.test(l)) {
+      skipSection = SKIP_SECTION_RE.test(l);
+      if (cur) { blocks.push(cur); cur = null; }
+      continue;
+    }
+    if (skipSection) continue;
+    if (isSkip(l)) continue;
+    if (SRC_RE.test(l)) { if (cur) cur.push('__SRC__'); continue; } // 標記來源行
+
+    if (Q_RE.test(l) && /[（(][　 ]*[)）]/.test(l)) {
+      if (cur) blocks.push(cur);
+      cur = [l];
+    } else if (cur) {
+      cur.push(l);
+    }
+  }
+  if (cur) blocks.push(cur);
+
+  blocks.forEach(blk => {
+    // 找答案行
+    const ansIdx = blk.findIndex(l => ANS_RE.test(l));
+    if (ansIdx === -1) return;
+
+    const ansLetter = blk[ansIdx].match(ANS_RE)[1].toUpperCase();
+    // A→1 B→2 C→3 D→4
+    const ansVal = String('ABCD'.indexOf(ansLetter) + 1);
+
+    // 詳解：答案行之後
+    let note = '';
+    for (let i = ansIdx + 1; i < blk.length; i++) {
+      const nm = blk[i].match(NOTE_RE);
+      if (nm) { note = nm[1].trim(); break; }
+    }
+
+    // 題目內容：答案行之前，去掉來源標籤
+    const relevant = blk.slice(0, ansIdx).filter(l => l !== '__SRC__' && !NOTE_RE.test(l));
+    const joined = relevant.join(' ');
+
+    // 選項：(A) xxx　(B) xxx　(C) xxx　(D) xxx
+    const firstOpt = joined.search(/\(A\)/i);
+    let titleRaw = firstOpt === -1 ? joined : joined.slice(0, firstOpt);
+    let optRaw   = firstOpt === -1 ? '' : joined.slice(firstOpt);
+
+    // 去題號
+    let title = titleRaw
+      .replace(/^[（(][　 ]*[)）]\s*\d+[.．]?\s*/, '')
+      .replace(/^\d+[.．]?\s*[（(][　 ]*[)）]\s*/, '')
+      .replace(/\s+/g, ' ').trim();
+    if (!title) return;
+
+    // 抓選項文字
+    const optPat = /\([A-D]\)\s*([^(]+)/gi;
+    const opts = []; let om;
+    while ((om = optPat.exec(optRaw)) !== null)
+      opts.push(om[1].trim().replace(/[　\s]+$/, ''));
+
+    rows.push({ title, ans: ansVal, opts, note });
+  });
+
+  return rows;
+}
+function setFmt(f) {
+  currentFmt = f;
+  ['auto','kx','nl','hl','lt'].forEach(k =>
+    document.getElementById('btn-'+k).classList.toggle('active', k === f));
+}
+
+function getMeta() {
+  return {
+    grade:     document.getElementById('m-grade').value ? document.getElementById('m-grade').value + '年級' : '',
+    subject:   document.getElementById('m-subject').value.trim(),
+    publisher: document.getElementById('m-publisher').value.trim(),
+    unit:      document.getElementById('m-unit').value.trim(),
+  };
+}
+
+function run() {
+  const raw = document.getElementById('inputText').value;
+  if (!raw.trim()) { alert('請先貼上題目內容'); return; }
+
+  let fmt = currentFmt === 'auto' ? detectFmt(raw) : currentFmt;
+  document.getElementById('detectedFmt').textContent =
+    { kx:'康軒格式', nl:'南一格式', hl:'翰林格式', lt:'龍騰格式' }[fmt];
+
+  parsedRows = fmt === 'kx' ? parseKX(raw)
+             : fmt === 'nl' ? parseNL(raw)
+             : fmt === 'lt' ? parseLT(raw)
+             :                parseHL(raw);
+  render(parsedRows);
+}
+
+function render(rows) {
+  const tbody = document.getElementById('resultBody');
+  tbody.innerHTML = '';
+  const meta = getMeta();
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="11" class="no-data">⚠ 未解析到任何題目，請確認格式或手動切換版本</td></tr>`;
+    document.getElementById('resultCard').style.display = 'block';
+    return;
+  }
+
+  rows.forEach(r => {
+    const o = [...r.opts]; while (o.length < 4) o.push('');
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      `<td class="q-cell">${esc(r.title)}</td>` +
+      `<td class="ans-cell">${esc(r.ans)}</td>` +
+      o.map(x => `<td>${esc(x)}</td>`).join('') +
+      `<td>${esc(meta.subject)}</td>` +
+      `<td>${esc(meta.publisher)}</td>` +
+      `<td>${esc(meta.grade)}</td>` +
+      `<td>${esc(meta.unit)}</td>` +
+      `<td class="note-cell">${esc(r.note||'')}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('totalCount').textContent = rows.length;
+  document.getElementById('stats').style.display = 'flex';
+  document.getElementById('resultCard').style.display = 'block';
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function copyTable() {
+  if (!parsedRows.length) { alert('請先按「開始轉換」'); return; }
+  const range = document.createRange();
+  range.selectNode(document.getElementById('targetTable'));
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+  document.execCommand('copy');
+  window.getSelection().removeAllRanges();
+  toast('✅ 已複製！直接貼到 Excel 即可');
+}
+
+function downloadCSV() {
+  if (!parsedRows.length) { alert('請先按「開始轉換」'); return; }
+  const meta = getMeta();
+  const hdr = ['題目','答案','選項①','選項②','選項③','選項④','科目','版本','年級','單元','詳解'];
+  const body = parsedRows.map(r => {
+    const o = [...r.opts]; while (o.length < 4) o.push('');
+    return [r.title, r.ans, ...o, meta.subject, meta.publisher, meta.grade, meta.unit, r.note||''];
+  });
+  const csv = '\uFEFF' + [hdr,...body]
+    .map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(','))
+    .join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download = '題庫.csv'; a.click();
+}
+
+function clearAll() {
+  document.getElementById('inputText').value = '';
+  document.getElementById('resultBody').innerHTML = '';
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('stats').style.display = 'none';
+  parsedRows = [];
+}
+
+function toast(msg) {
+  let t = document.getElementById('_toast');
+  if (!t) {
+    t = document.createElement('div'); t.id = '_toast';
+    Object.assign(t.style, {
+      position:'fixed', bottom:'26px', left:'50%', transform:'translateX(-50%)',
+      background:'#2d6a4f', color:'#fff', padding:'10px 24px', borderRadius:'8px',
+      fontSize:'13px', fontWeight:'700', zIndex:'9999', opacity:'0',
+      transition:'opacity 0.2s', pointerEvents:'none', whiteSpace:'nowrap'
+    });
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(t._t); t._t = setTimeout(() => t.style.opacity = '0', 2400);
+}
+</script>
+</body>
+</html>

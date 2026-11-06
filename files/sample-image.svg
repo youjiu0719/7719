@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#fde9dc"/>
+<rect x="40" y="40" width="1520" height="820" rx="28" fill="none" stroke="#c2410c" stroke-width="4" stroke-dasharray="18 14"/>
+<text x="800" y="430" text-anchor="middle" font-family="PingFang TC, Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="100" font-weight="700" fill="#c2410c">範例圖片</text>
+<text x="800" y="530" text-anchor="middle" font-family="PingFang TC, Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="44" fill="#c2410c">換成你的圖片（jpg / png）</text>
+</svg>
