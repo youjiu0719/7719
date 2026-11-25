@@ -44,6 +44,7 @@ Wendy 自製的教學與班務小工具。首頁：index.html
 | starters.html | Starters 口說抽卡 |
 | post-card.html | 貼文圖卡產生器 |
 | jixuan.html | 濟玄天書線上抽籤 |
+| classroom.html | ICS Classroom 班級積分 |
 | live-vocab.html | Live 英文課文單字挑戰 |
 | quiz.html | 題庫複習測驗（讀取 Google Sheets） |
 | worksheet.html | 英文練習字 Worksheet 產生器 |

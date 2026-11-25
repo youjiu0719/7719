@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ICS Classroom | 班級積分</title>
+  <style>
+    :root {
+      --retro-brown: #3e2723;
+      --retro-paper: #f9f7f2;
+      --retro-shadow: rgba(0, 0, 0, 0.25);
+      --plus-green: #2d7a32;
+      --plus-border: #1b4d1f;
+      --minus-red: #c62828;
+      --minus-border: #8e0000;
+      --apple-red: #ff4d4d;
+      --money-gold: #b8860b;
+    }
+
+    body {
+      background: #d7c4a3;
+      font-family: "Microsoft JhengHei", sans-serif;
+      margin: 0; padding: 0; color: var(--retro-brown);
+      height: 100vh; width: 100vw; display: flex; overflow: hidden;
+    }
+
+    .sidebar-left {
+      width: 200px; height: 100vh; background: rgba(255, 255, 255, 0.4);
+      border-right: 2px solid var(--retro-brown);
+      display: flex; flex-direction: column; padding: 10px; box-sizing: border-box; flex-shrink: 0;
+    }
+
+    .date-display { font-size: 0.85em; font-weight: 900; text-align: center; margin-bottom: 5px; line-height: 1.2; }
+    .digital-clock { text-align: center; font-family: 'Courier New', monospace; font-size: 1.4em; font-weight: 900; background: var(--retro-brown); color: #76ff03; padding: 6px 4px; border-radius: 6px; margin-bottom: 5px; }
+
+    .analog-clock { 
+      width: 170px; height: 170px; background: white; border: 3px solid var(--retro-brown); 
+      border-radius: 50%; margin: 5px auto; position: relative; flex-shrink: 0;
+    }
+    .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; background: var(--retro-brown); border-radius: 10px; transform: translateX(-50%); }
+    .hour-hand { width: 5px; height: 25%; z-index: 3; }
+    .min-hand { width: 3px; height: 38%; z-index: 2; }
+    .sec-hand { width: 1.5px; height: 45%; background: red; z-index: 1; }
+    .center-dot { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: var(--retro-brown); border-radius: 50%; z-index: 4; }
+
+    .rank-section { flex-grow: 1; overflow-y: auto; border-top: 2px solid var(--retro-brown); margin-top: 10px; }
+    .rank-item { display: flex; justify-content: space-between; padding: 4px 6px; margin: 3px 0; background: white; border-radius: 4px; font-size: 0.85em; font-weight: 900; }
+
+    .main-wrapper {
+      flex: 1; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    .big-timer-container {
+        margin: 15px auto; position: relative; width: 220px; height: 220px; flex-shrink: 0;
+    }
+    .timer-svg { transform: rotate(-90deg); width: 220px; height: 220px; }
+    .timer-bg { fill: none; stroke: rgba(255,255,255,0.3); stroke-width: 12; }
+    .timer-progress { 
+        fill: none; stroke: var(--plus-green); stroke-width: 12; 
+        stroke-linecap: round; stroke-dasharray: 628; stroke-dashoffset: 0;
+        transition: stroke-dashoffset 1s linear;
+    }
+    .timer-text-center {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        font-family: 'Courier New', monospace; font-size: 3.2em; font-weight: 900; cursor: pointer;
+    }
+
+    .main-content {
+      flex: 1; 
+      overflow-y: auto; padding: 10px 15px 40px; box-sizing: border-box;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px; align-content: start;
+    }
+
+    .sidebar-right {
+      width: 180px; height: 100vh; padding: 10px; box-sizing: border-box; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      border-left: 1px dashed var(--retro-brown);
+      overflow: hidden;
+    }
+
+    .spacer-top { height: 250px; flex-shrink: 0; } 
+
+    .control-group { 
+        display: flex; flex-direction: column; gap: 8px; 
+        overflow-y: auto; 
+        padding-bottom: 50px; 
+    }
+    .control-panel { background: rgba(255,255,255,0.3); border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+    
+    .card { 
+      background: var(--retro-paper); border: 2px solid var(--retro-brown); padding: 8px; 
+      border-radius: 10px; display: flex; flex-direction: column; align-items: center; 
+      box-shadow: 3px 3px 0 var(--retro-shadow);
+    }
+    .name { font-size: 1.1em; font-weight: 900; margin-bottom: 2px; cursor: pointer; }
+    .score-area { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; font-weight: 900; }
+    .score-val { font-size: 1.6em; }
+
+    .btn-row { display: flex; gap: 3px; width: 100%; margin-top: 2px; }
+    .btn-row button { 
+      flex: 1; padding: 6px 0; font-weight: 900; border-radius: 4px; 
+      border: 1.5px solid var(--retro-brown); cursor: pointer; font-size: 0.8em; 
+      transition: 0.1s; position: relative;
+    }
+    .btn-plus { background: var(--plus-green); color: white; box-shadow: 0 2px 0 var(--plus-border); }
+    .btn-minus { background: #fff; color: var(--minus-red); box-shadow: 0 2px 0 var(--minus-border); }
+    .btn-row button:active { top: 2px; box-shadow: 0 0 0; }
+
+    .btn-manage { background: #fff; border: 1.5px solid var(--retro-brown); padding: 6px; font-weight: 900; border-radius: 6px; cursor: pointer; font-size: 0.85em; box-shadow: 0 2px 0 var(--retro-brown); width: 100%; position: relative; }
+    .btn-manage:active { top: 2px; box-shadow: 0 0px 0; }
+    .btn-manage.active { background: var(--plus-green); color: white; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: var(--retro-brown); border-radius: 10px; }
+  
+:root{--retro-brown:#3e2723;--retro-paper:#f9f7f2;--plus-green:#54704b;--plus-border:#3d5837;--minus-red:#a64b45;--retro-shadow:transparent}
+body{background:#d7c4a3;color:#3e2723}.sidebar-left{width:220px;background:#eee4d4;border:0;border-right:1px solid #bca98b;padding:18px;gap:8px}.sidebar-right{width:210px;background:#eee4d4;border:0;border-left:1px solid #bca98b;padding:16px}.spacer-top{height:0}.control-group{gap:12px;padding-bottom:12px}.control-panel{background:#eee4d4!important;padding:9px;gap:7px}.btn-manage{border:1px solid #bca98b;box-shadow:none;padding:10px 5px;color:#3e2723}.btn-manage.active{background:#3e2723;color:white}.main-wrapper{padding:22px;box-sizing:border-box}.main-content{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;padding:8px 0 20px}.card{background:#f9f7f2;border:1px solid #bca98b;box-shadow:0 3px 12px #3e27230b;padding:16px 12px;border-radius:16px}.name{font-size:clamp(18px,2vw,28px);margin-bottom:10px;overflow-wrap:anywhere}.score-val{font-size:clamp(32px,4vw,54px);font-variant-numeric:tabular-nums}.score-area{font-size:1.2em;margin-bottom:10px}.btn-row{gap:6px;margin-top:6px}.btn-row button{border:0;box-shadow:none;font-size:1.05em;padding:10px 0;border-radius:8px}.btn-minus{background:#f6e7df}.rank-section{border-top:1px solid #bca98b}.rank-item{background:#eee4d4;padding:10px 8px;font-size:1em;border-radius:8px}.analog-clock{width:140px;height:140px;border:2px solid #3e2723}.big-timer-container{margin:0 auto 12px;width:180px;height:180px}.timer-svg{width:180px;height:180px}.timer-text-center{font-size:2.8em}.timer-bg{stroke:#bca98b}.heading{font-weight:900;font-size:22px;margin:0 0 8px}.subheading{font-size:12px;font-weight:800;color:#78614d;letter-spacing:1px;margin:8px 0}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#3e2723;color:#fff;padding:12px 24px;border-radius:12px;z-index:20;display:none;font-weight:bold}.picked{outline:3px solid #b88642;background:#fff1d5}.timer-done{color:#a64b45;animation:pulse .7s alternate infinite}@keyframes pulse{to{opacity:.45}}.timer-done{animation-iteration-count:8}.main-content.two{grid-template-columns:repeat(2,minmax(0,1fr))}.main-content.two .card{padding:24px}.main-content.two .score-val{font-size:64px}button:focus-visible{outline:3px solid #b88642;outline-offset:2px}@media(max-width:1000px){.sidebar-left{width:155px;padding:10px}.sidebar-right{width:155px;padding:10px}.main-wrapper{padding:12px}.main-content{grid-template-columns:repeat(2,minmax(0,1fr))}.analog-clock{width:115px;height:115px}}@media(max-width:650px){body{height:auto;min-height:100vh;overflow:auto;flex-wrap:wrap}.sidebar-left{width:100%;height:auto;order:2}.analog-clock{display:none}.main-wrapper{width:100%;flex:auto;height:auto;order:0}.sidebar-right{width:100%;height:auto;order:1}.control-group{display:grid;grid-template-columns:1fr 1fr}.main-content{overflow:visible}.rank-section{max-height:200px}}
+
+.daily{background:#f9f7f2;border:1px solid #bca98b;border-radius:12px;padding:12px 16px;margin:0 0 10px;flex-shrink:0;box-shadow:0 2px 5px #3e272315}.daily-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.daily-title{font-weight:900;letter-spacing:.5px}.daily-actions{display:flex;gap:6px;flex-wrap:wrap}.daily-actions button,.daily-actions a{border:1px solid #bca98b;border-radius:6px;padding:5px 9px;background:#eee4d4;color:#3e2723;font:inherit;font-size:12px;font-weight:bold;text-decoration:none;cursor:pointer}.daily-en{font-size:clamp(17px,2vw,25px);font-weight:800;line-height:1.4;margin:7px 0 3px;white-space:pre-wrap;overflow-wrap:anywhere}.daily-zh{font-size:clamp(14px,1.4vw,19px);color:#78614d;white-space:pre-wrap;overflow-wrap:anywhere}.daily-note{font-size:11px;color:#78614d;margin-top:5px}.daily-editor{max-width:min(600px,90vw);width:90%;border:1px solid #bca98b;border-radius:12px;background:#f9f7f2;color:#3e2723;padding:20px}.daily-editor textarea{width:100%;box-sizing:border-box;font:inherit;padding:8px;margin:6px 0 12px;resize:vertical;border:1px solid #bca98b;border-radius:6px}.daily-editor::backdrop{background:#3e272366}.daily-body{max-height:145px;overflow:auto}.daily[hidden]{display:none}.digital-clock{color:#f4e6c7}
+
+/* ===== v2 版面：公告欄式、卡片縮小 ===== */
+.sidebar-left{width:200px;padding:14px;gap:6px}
+.sidebar-right{width:190px;padding:14px}
+.main-wrapper{padding:14px 18px;min-width:0}
+.toolbar{margin-bottom:4px}.toolbar .heading{margin:0;font-size:20px}
+.rank-section{margin-top:4px}.rank-item{padding:6px 8px;font-size:.95em}
+.board{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;padding:4px 0 12px;margin-bottom:10px;border-bottom:1px dashed #bca98b;flex-shrink:0}
+.board-clock{display:flex;align-items:center;gap:14px}
+.board-clock .analog-clock{width:112px;height:112px;margin:0;border-width:3px}
+.board-clock .date-display{text-align:left;font-size:.95em;margin:0 0 4px;color:#78614d}
+.board-clock .digital-clock{background:none;color:#3e2723;padding:0;margin:0;font-size:1.95em;text-align:left;letter-spacing:0}
+.board-main{min-width:0;border-left:1px solid #bca98b;border-right:1px solid #bca98b;padding:0 16px}
+.board-tabs{display:flex;gap:16px;margin-bottom:2px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;font:inherit;font-size:13px;font-weight:800;color:#78614d;padding:2px 1px;cursor:pointer;letter-spacing:.5px}
+.tab.active{color:#3e2723;border-bottom-color:#3e2723}
+.daily{background:none;border:0;box-shadow:none;border-radius:0;padding:0;margin:0}
+.daily-body{max-height:130px;overflow:auto}
+.daily-en{font-size:clamp(16px,1.5vw,21px);line-height:1.35;margin:6px 0 2px}
+.daily-zh{font-size:clamp(13px,1.2vw,17px)}
+.daily-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px}
+.daily-note{margin:0;flex:1 1 180px}
+.daily-actions button,.daily-actions a{background:transparent;border-color:transparent;color:#78614d;padding:3px 7px}
+.daily-actions button:hover,.daily-actions a:hover{border-color:#bca98b;background:#eee4d4}
+.daily-actions button:disabled{opacity:.5}
+.events[hidden]{display:none}
+.ev-list{list-style:none;margin:6px 0 0;padding:0;max-height:130px;overflow:auto}
+.ev{display:flex;align-items:baseline;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px dotted #bca98b;padding:4px 2px;font:inherit;color:#3e2723;cursor:pointer}
+.ev:hover{background:#eee4d4}
+.ev-date{font-weight:900;min-width:84px;font-variant-numeric:tabular-nums}
+.ev-title{font-weight:800;flex:1;overflow-wrap:anywhere}
+.ev-note{font-size:12px;font-weight:600;color:#78614d}
+.ev-left{font-size:12px;font-weight:800;color:#a64b45;white-space:nowrap}
+.ev-empty{color:#78614d;font-size:14px;padding:10px 0}
+.daily-editor input{width:100%;box-sizing:border-box;font:inherit;padding:8px;margin:6px 0 12px;border:1px solid #bca98b;border-radius:6px;background:#fff;color:#3e2723}
+.big-timer-container.board-timer{margin:0;width:112px;height:112px}
+.board-timer .timer-svg{width:112px;height:112px}
+.board-timer .timer-text-center{font-size:1.45em}
+.main-content{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:2px 0 16px}
+.card{padding:9px 8px;border-radius:12px}
+.name{font-size:clamp(15px,1.4vw,19px);margin-bottom:2px}
+.score-area{margin-bottom:6px;gap:4px;font-size:1em}
+.score-val{font-size:clamp(24px,2.6vw,34px)}
+.btn-row{gap:5px;margin-top:4px}
+.btn-row button{padding:6px 0;font-size:.9em;border-radius:7px}
+.main-content.two{grid-template-columns:repeat(2,minmax(0,200px));justify-content:start}
+.main-content.two .card{padding:12px}
+.main-content.two .score-val{font-size:40px}
+.control-group{gap:8px}.control-panel{padding:7px;gap:5px}.btn-manage{padding:7px 5px}
+@media(max-width:1000px){.sidebar-left,.sidebar-right{width:150px;padding:10px}.board{grid-template-columns:1fr auto;gap:12px}.board-main{grid-column:1/-1;order:3;border:0;border-top:1px solid #bca98b;padding:10px 0 0}}
+@media(max-width:650px){.board{grid-template-columns:1fr}.board-timer{justify-self:start}.main-wrapper{padding:12px}}
+#bg-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.sidebar-left,.main-wrapper,.sidebar-right{position:relative;z-index:1}
+@media print{#bg-canvas{display:none}}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <aside class="sidebar-left"><div class="heading">ICS Classroom</div>
+    <div class="subheading">LEADERBOARD 排行榜</div><section class="rank-section" id="rank-list"></section>
+    <div id="total-amount" style="padding: 8px; background: var(--retro-brown); color: white; border-radius: 6px; text-align: center; font-weight: 900;">🍎 0</div>
+  </aside>
+
+  <div class="main-wrapper"><div class="toolbar"><div><div class="heading" id="class-title">英文班 ICS</div></div><button class="btn-manage" style="width:auto" onclick="fullScreen()">⛶ 全螢幕</button></div>
+    <section class="board">
+      <div class="board-clock">
+        <div class="analog-clock">
+          <div id="hour" class="hand hour-hand"></div>
+          <div id="min" class="hand min-hand"></div>
+          <div id="sec" class="hand sec-hand"></div>
+          <div class="center-dot"></div>
+        </div>
+        <div>
+          <div id="display-date" class="date-display">Wednesday<br>March 18, 2026</div>
+          <div id="display-time" class="digital-clock">00:00:00</div>
+        </div>
+      </div>
+      <div class="board-main">
+        <div class="board-tabs">
+          <button id="tab-daily" class="tab active" onclick="switchBoard('daily')">每日一句</button>
+          <button id="tab-events" class="tab" onclick="switchBoard('events')">近日活動</button>
+        </div>
+        <section class="daily" id="daily-panel">
+          <div class="daily-body"><div id="daily-en" class="daily-en"></div><div id="daily-zh" class="daily-zh"></div></div>
+          <div class="daily-foot"><div id="daily-note" class="daily-note"></div><div class="daily-actions"><a href="https://store.liveabc.com/" target="_blank" rel="noopener noreferrer">LiveABC ↗</a><button id="daily-refresh" onclick="refreshDaily(true)">↻ 更新句子</button><button onclick="editDaily()">編輯</button><button onclick="speakDaily()">朗讀</button><button onclick="toggleDailyChinese()" id="daily-translate">隱藏中文</button></div></div>
+        </section>
+        <section class="events" id="events-panel" hidden>
+          <ul class="ev-list" id="events-list"></ul>
+          <div class="daily-foot"><div class="daily-note">點活動可編輯或刪除</div><div class="daily-actions"><button id="ev-clear" onclick="clearPastEvents()" hidden></button><button onclick="openEvent(-1)">＋新增活動</button></div></div>
+        </section>
+      </div>
+      <div class="board-timer big-timer-container">
+        <svg class="timer-svg" viewBox="0 0 220 220">
+            <circle class="timer-bg" cx="110" cy="110" r="100"></circle>
+            <circle id="timer-bar" class="timer-progress" cx="110" cy="110" r="100" stroke-dasharray="628"></circle>
+        </svg>
+        <div id="timer-display" class="timer-text-center" onclick="customTimer()">00:00</div>
+      </div>
+    </section>
+    <main id="student-grid" class="main-content"></main>
+  </div>
+
+  <aside class="sidebar-right">
+    <div class="heading">課堂控制</div>
+    <div class="control-group">
+        <div class="control-panel">
+          <div style="display:flex; gap:3px;">
+            <button id="md-apple" class="btn-manage active" onclick="switchMode('apple')">🍎</button>
+            <button id="md-money" class="btn-manage" onclick="switchMode('money')">💰</button>
+          </div>
+        </div>
+
+        <div class="control-panel">
+            <div style="display:flex; gap:3px;">
+                <button id="cls-Chinese" class="btn-manage" onclick="switchClass('Chinese')">中文</button>
+                <button id="cls-ICS" class="btn-manage active" onclick="switchClass('ICS')">英文</button>
+            </div>
+        </div>
+
+        <div class="control-panel" style="background:rgba(0,0,0,0.1)">
+            <div style="display:flex; gap:3px;">
+                <button id="timer-start" class="btn-manage" style="background:var(--plus-green); color:white;" onclick="toggleTimer()">GO</button>
+                <button class="btn-manage" style="background:var(--minus-red); color:white;" onclick="resetTimer()">C</button>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:3px;">
+                <button class="btn-manage" onclick="addTime(30)" style="font-size:0.75em">+30s</button>
+                <button class="btn-manage" onclick="addTime(60)" style="font-size:0.75em">+1m</button>
+            </div>
+        </div>
+        
+        <div class="control-panel"><div class="subheading">快捷計時</div><div style="display:flex;gap:4px"> <button class="btn-manage" onclick="preset(60)">1m</button><button class="btn-manage" onclick="preset(180)">3m</button><button class="btn-manage" onclick="preset(300)">5m</button></div></div><div class="control-panel"><button class="btn-manage" onclick="undoScore()">↶ 撤銷上次計分</button><button class="btn-manage" onclick="pickStudent()">🎲 隨機抽人</button><button class="btn-manage" onclick="allPlus()">全班 +1</button><button class="btn-manage" id="mute" onclick="toggleMute()">🔊 音效開啟</button><button class="btn-manage" id="bg-toggle" onclick="toggleBg()">🌊 背景動畫 開</button></div><button class="btn-manage" style="color:red; font-size:0.75em; padding:4px;" onclick="resetScores()">全班積分歸零</button>
+
+        <div class="control-panel">
+          <button class="btn-manage" onclick="addNewStudent()">➕ 新增學生</button>
+          <div style="display:flex; gap:3px;">
+              <button class="btn-manage" onclick="exportData()" style="font-size:0.7em">💾 備份</button>
+              <button class="btn-manage" onclick="importData()" style="font-size:0.7em">📂 還原</button>
+          </div>
+        </div>
+    </div>
+  </aside>
+
+  <dialog class="daily-editor" id="daily-editor"><form method="dialog"><h3>編輯 LiveABC 每日一句</h3><label for="daily-input-en">英文</label><textarea id="daily-input-en" rows="3" placeholder="貼上官網英文句子"></textarea><label for="daily-input-zh">中文</label><textarea id="daily-input-zh" rows="2" placeholder="貼上中文翻譯"></textarea><div class="daily-actions"><button type="button" onclick="saveDaily()">儲存</button><button value="cancel">取消</button></div></form></dialog><dialog class="daily-editor" id="event-editor"><form method="dialog"><h3 id="event-editor-title">新增活動</h3><label for="ev-date">日期</label><input id="ev-date" type="date"><label for="ev-title">活動名稱</label><input id="ev-title" type="text" maxlength="60" placeholder="例如：聖誕派對"><label for="ev-note">時間／地點（選填）</label><input id="ev-note" type="text" maxlength="60"><div class="daily-actions"><button type="button" onclick="saveEvent()">儲存</button><button type="button" id="ev-del" onclick="deleteEvent()">刪除</button><button value="cancel">取消</button></div></form></dialog><div class="toast" id="toast" role="status"></div><script>
+    const initialNames = {
+      'Chinese': ['Yenyen', 'Allen'],
+      'ICS': ['Yenyen', 'Allen', 'Ivy', 'Coco', 'Angela', 'Eddie', 'Jasper', 'Ian']
+    };
+    const KEY = 'ICS_DESKTOP_FINAL';
+    let studentsData; try {studentsData=JSON.parse(localStorage.getItem(KEY));} catch(e){studentsData=null;}
+    let currentClass = 'ICS', currentMode = 'apple', timeLeft = 0, totalStartTime = 0, timerId = null;
+
+    // 音效環境優化
+    let audioCtx = null, muted=false, picked=-1, history=[], toastId;
+    function notify(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(toastId);toastId=setTimeout(()=>t.style.display='none',2500);}
+    function toggleMute(){muted=!muted;document.getElementById('mute').textContent=muted?'🔇 音效關閉':'🔊 音效開啟';}
+    function fullScreen(){if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen?.().catch(()=>notify('無法切換全螢幕'));}
+    function preset(s){resetTimer();addTime(s);}
+    function remember(){history.push({cls:currentClass,data:JSON.stringify(studentsData[currentClass])});if(history.length>50)history.shift();}
+    function undoScore(){const i=history.findLastIndex(h=>h.cls===currentClass);if(i<0)return notify('目前沒有可撤銷的計分');studentsData[currentClass]=JSON.parse(history.splice(i,1)[0].data);save();render();notify('已撤銷上次計分');}
+    function allPlus(){remember();const k=currentMode==='apple'?'apples':'money';studentsData[currentClass].forEach(s=>s[k]++);soundPlus();save();render();notify('全班 +1');}
+    function pickStudent(){const a=studentsData[currentClass];if(!a.length)return;const choices=a.map((_,i)=>i).filter(i=>i!==picked||a.length===1);picked=choices[Math.floor(Math.random()*choices.length)];render();notify('抽中 '+a[picked].name);}
+    function safe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playTone(freq, type, duration, vol=0.1) {
+        if(muted)return;
+        try{initAudio();}catch(e){return;}
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+    const soundPlus = () => playTone(880, 'sine', 0.2);
+    const soundMinus = () => playTone(440, 'triangle', 0.2);
+    const soundAlarm = () => { 
+        playTone(660, 'square', 0.4); 
+        setTimeout(() => playTone(660, 'square', 0.4), 500); 
+    };
+
+    function init() {
+      // 名單更新只執行一次：移除舊名單，保留同名學生原有積分。
+      // 之後仍可正常使用「新增學生」及點擊姓名改名。
+      const rosterVersionKey = KEY + '_ROSTER_VERSION';
+      if (!studentsData || localStorage.getItem(rosterVersionKey) !== '2026-11-25') {
+        const previous = studentsData || {};
+        studentsData = {};
+        for (const cls in initialNames) {
+          const oldList = Array.isArray(previous[cls]) ? previous[cls] : [];
+          studentsData[cls] = initialNames[cls].map(name => {
+            const old = oldList.find(s => String(s.name).trim().toLowerCase() === name.toLowerCase());
+            return { name, apples: old?.apples ?? 0, money: old?.money ?? 0 };
+          });
+        }
+        save();
+        localStorage.setItem(rosterVersionKey, '2026-11-25');
+      }
+      setInterval(updateClocks, 1000);
+      updateClocks();
+      render();
+    }
+
+    function getEnglishDate() {
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const today = new Date();
+      const parts = today.toLocaleDateString('en-US', options).split(', ');
+      return `${parts[0]}<br>${parts[1]}, ${parts[2]}`;
+    }
+
+    function updateClocks() {
+      const now = new Date();
+      const s = now.getSeconds(), m = now.getMinutes(), h = now.getHours();
+      document.getElementById('sec').style.transform = `translateX(-50%) rotate(${s*6}deg)`;
+      document.getElementById('min').style.transform = `translateX(-50%) rotate(${m*6}deg)`;
+      document.getElementById('hour').style.transform = `translateX(-50%) rotate(${(h%12)*30 + m*0.5}deg)`;
+      document.getElementById('display-time').innerText = now.toTimeString().split(' ')[0];
+      document.getElementById('display-date').innerHTML = getEnglishDate();
+    }
+
+    function updateScore(idx, amt) {
+      remember();
+      amt > 0 ? soundPlus() : soundMinus();
+      const key = currentMode === 'apple' ? 'apples' : 'money';
+      studentsData[currentClass][idx][key] += amt;
+      render(); save();
+    }
+
+    function render() {
+      const grid = document.getElementById('student-grid');
+      grid.innerHTML = '';
+      grid.classList.toggle('two',studentsData[currentClass].length<=2);
+      document.getElementById('class-title').textContent=currentClass==='ICS'?'英文班 ICS':'中文班';
+
+      studentsData[currentClass].forEach((s, i) => {
+        const val = currentMode === 'apple' ? s.apples : s.money;
+        const icon = currentMode === 'apple' ? '🍎' : '💰';
+        const color = currentMode === 'apple' ? 'var(--apple-red)' : 'var(--money-gold)';
+        grid.innerHTML += `
+          <div class="card ${i===picked?'picked':''}">
+            <div class="name" onclick="editName(${i})">${safe(s.name)}</div>
+            <div class="score-area">
+              <span>${icon}</span>
+              <span class="score-val" style="color:${color}">${val}</span>
+            </div>
+            <div class="btn-row">
+              <button class="btn-plus" onclick="updateScore(${i},1)">+1</button>
+              <button class="btn-plus" onclick="updateScore(${i},5)">+5</button>
+            </div>
+            <div class="btn-row">
+              <button class="btn-minus" onclick="updateScore(${i},-1)">-1</button>
+              <button class="btn-minus" onclick="updateScore(${i},-5)">-5</button>
+            </div>
+          </div>`;
+      });
+      renderRank();
+    }
+
+    function renderRank() {
+      const key = currentMode === 'apple' ? 'apples' : 'money';
+      const sorted = [...studentsData[currentClass]].sort((a, b) => b[key] - a[key]);
+      document.getElementById('rank-list').innerHTML = sorted.map((s, i) => {
+        let crown = i < 3 ? '👑' : '';
+        return `<div class="rank-item"><span>${crown}${safe(s.name)}</span><strong>${s[key]}</strong></div>`;
+      }).join('');
+      const total = studentsData[currentClass].reduce((sum, s) => sum + s[key], 0);
+      document.getElementById('total-amount').innerText = (currentMode==='apple'?'🍎 ':'💰 ') + total;
+    }
+
+    function toggleTimer() { 
+        initAudio(); // 啟動音效環境
+        const btn = document.getElementById('timer-start'); 
+        if (timerId) { 
+            clearInterval(timerId); 
+            timerId = null; 
+            btn.innerText = "GO"; 
+        } else if (timeLeft > 0) { 
+            if(totalStartTime === 0) totalStartTime = timeLeft;
+            btn.innerText = "||"; 
+            timerId = setInterval(() => { 
+                timeLeft--; 
+                updateTimerDisplay(); 
+                if (timeLeft <= 0) { 
+                    clearInterval(timerId); 
+                    timerId = null; 
+                    btn.innerText = "GO"; 
+                    soundAlarm(); 
+                    notify("時間到！"); document.getElementById("timer-display").classList.add("timer-done");
+                } 
+            }, 1000); 
+        } 
+    }
+
+    function resetTimer() { clearInterval(timerId); timerId = null; timeLeft = 0; totalStartTime = 0; updateTimerDisplay(); document.getElementById('timer-start').innerText = "GO"; }
+    function addTime(s) { initAudio(); timeLeft += s; totalStartTime = Math.max(totalStartTime, timeLeft); updateTimerDisplay(); }
+    function updateTimerDisplay() {
+        document.getElementById("timer-display").classList.remove("timer-done"); 
+        document.getElementById('timer-display').innerText = `${String(Math.floor(timeLeft/60)).padStart(2,'0')}:${String(timeLeft%60).padStart(2,'0')}`;
+        const bar = document.getElementById('timer-bar');
+        const offset = totalStartTime > 0 ? 628 * (1 - timeLeft / totalStartTime) : 0;
+        bar.style.strokeDashoffset = offset;
+    }
+    function customTimer() { initAudio(); const m = prompt("分鐘？", "1"); if(m && Number.isFinite(Number(m)) && Number(m)>0) { resetTimer(); timeLeft = Math.max(1,Math.round(Number(m)*60)); totalStartTime = timeLeft; updateTimerDisplay(); } }
+
+    function save() { localStorage.setItem(KEY, JSON.stringify(studentsData)); }
+    function switchClass(cls) { currentClass = cls; picked=-1; document.querySelectorAll('[id^="cls-"]').forEach(b => b.classList.toggle('active', b.id === 'cls-'+cls)); render(); }
+    function switchMode(mode) { currentMode = mode; document.querySelectorAll('[id^="md-"]').forEach(b => b.classList.toggle('active', b.id === 'md-'+mode)); render(); }
+    function editName(idx) { const n = prompt("改名：", studentsData[currentClass][idx].name); if(n){ history=[]; studentsData[currentClass][idx].name=n; save(); render(); } }
+    function addNewStudent() { const n = prompt("名字："); if(n){ history=[]; studentsData[currentClass].push({name:n, apples:0, money:0}); save(); render(); } }
+    function resetScores() { if(confirm("確定全班歸零？")){ remember(); studentsData[currentClass].forEach(s=>s.apples=s.money=0); save(); render(); } }
+    function exportData() { const code=btoa(encodeURIComponent(JSON.stringify(studentsData))); if(navigator.clipboard) navigator.clipboard.writeText(code).then(()=>notify("代碼已複製")).catch(()=>prompt("請複製備份代碼",code)); else prompt("請複製備份代碼",code); }
+    function importData() { const code = prompt("貼入代碼："); if(code) { try { const data = JSON.parse(decodeURIComponent(atob(code))); if(!["Chinese","ICS"].every(k=>Array.isArray(data[k]) && data[k].every(s=>typeof s.name==="string" && Number.isFinite(s.apples) && Number.isFinite(s.money)))) throw Error(); studentsData=data; history=[];picked=-1;save(); render(); } catch(e){ alert("格式錯誤"); } } }
+
+
+const DAILY_KEY='ICS_LIVEABC_DAILY_V1';
+let daily={en:'',zh:'',date:''},dailyChinese=true,dailyStatus='';
+try{const saved=JSON.parse(localStorage.getItem(DAILY_KEY));if(saved&&typeof saved.en==='string'&&typeof saved.zh==='string')daily=saved;}catch(e){}
+function dailyDate(){return new Date().toLocaleDateString('sv-SE');}
+function renderDaily(){
+ document.getElementById('daily-en').textContent=daily.en||'尚未取得 LiveABC 每日一句';
+ document.getElementById('daily-zh').textContent=daily.zh;
+ document.getElementById('daily-zh').hidden=!dailyChinese;
+ document.getElementById('daily-translate').textContent=dailyChinese?'隱藏中文':'顯示中文';
+ let src='';
+ if(daily.en){
+  src=daily.source==='auto'?'來源：LiveABC'+(daily.publish?' · 發布 '+daily.publish:'')+' · 取得 '+(daily.fetched||daily.date):'手動收錄（已釘選，按「更新句子」可改回官網）· '+daily.date;
+  if(daily.date!==dailyDate())src+='（非今日取得）';
+ }
+ document.getElementById('daily-note').textContent=[dailyStatus,src].filter(Boolean).join(' · ');
+}
+// LiveABC 官網是 Vue 單頁應用程式，句子由這支 API 提供（用 F12 → Network 找到）
+const API_URL='https://api.liveabc.com/v1/daily-sentences?page=1&pageSize=1';
+const VIA_PROXY=location.protocol==='http:'&&location.hostname==='127.0.0.1'&&location.port==='8765';
+function parseApi(json){
+ const it=json&&Array.isArray(json.data)?json.data[0]:null;
+ const en=it&&typeof it.sent==='string'?it.sent.trim():'';
+ if(!en)throw new Error('格式');
+ return {en,zh:typeof it.local==='string'?it.local.trim():'',audio:typeof it.audio_url==='string'?it.audio_url:'',publish:typeof it.publish_at==='string'?it.publish_at.slice(0,10):''};
+}
+async function getJson(endpoint){
+ const r=await fetch(endpoint,{cache:'no-store',signal:AbortSignal.timeout(12000)});
+ if(!r.ok)throw new Error('HTTP '+r.status);
+ return r.json();
+}
+// force=true：使用者按「更新句子」，會覆蓋手動內容；false：開頁面自動更新，今天手動釘選的句子不被蓋掉
+async function refreshDaily(force){
+ const btn=document.getElementById('daily-refresh');if(btn.disabled)return;
+ if(!force&&daily.source==='manual'&&daily.date===dailyDate()){dailyStatus='';renderDaily();return;}
+ btn.disabled=true;dailyStatus='正在讀取 LiveABC…';renderDaily();
+ try{
+  let result,why=[];
+  const routes=[API_URL];if(VIA_PROXY)routes.push('/liveabc?url='+encodeURIComponent(API_URL));
+  for(const ep of routes){
+   try{result=parseApi(await getJson(ep));break;}
+   catch(e){console.warn('LiveABC',ep,e);why.push(e.message==='格式'?'回傳格式不符':(/^HTTP/.test(e.message)?e.message:'連線或跨網域被擋'));}
+  }
+  if(!result)throw new Error([...new Set(why)].join('、'));
+  daily={...result,date:dailyDate(),fetched:new Date().toLocaleString('zh-TW',{hour12:false}),source:'auto'};
+  try{localStorage.setItem(DAILY_KEY,JSON.stringify(daily));}catch(e){}
+  dailyStatus='更新成功';
+ }catch(e){dailyStatus='讀取失敗（'+e.message+'），保留上次內容';}
+ finally{btn.disabled=false;renderDaily();}
+}
+function editDaily(){document.getElementById('daily-input-en').value=daily.en;document.getElementById('daily-input-zh').value=daily.zh;document.getElementById('daily-editor').showModal();}
+function saveDaily(){const en=document.getElementById('daily-input-en').value.trim(),zh=document.getElementById('daily-input-zh').value.trim();if(!en){notify('請輸入英文句子');return;}daily={en,zh,date:dailyDate(),source:'manual'};dailyStatus='';try{localStorage.setItem(DAILY_KEY,JSON.stringify(daily));}catch(e){notify('瀏覽器無法儲存每日一句');}document.getElementById('daily-editor').close();renderDaily();}
+function toggleDailyChinese(){dailyChinese=!dailyChinese;renderDaily();}
+let dailyAudio=null;
+function speakTTS(){if(!('speechSynthesis' in window))return notify('瀏覽器不支援朗讀');speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(daily.en);u.lang='en-US';u.rate=.85;speechSynthesis.speak(u);}
+function speakDaily(){
+ if(!daily.en)return notify('請先加入英文句子');
+ if(dailyAudio){dailyAudio.pause();dailyAudio=null;}
+ speechSynthesis.cancel?.();
+ if(daily.audio&&daily.source==='auto'){ // LiveABC 官方真人/標準音檔，失敗再用瀏覽器語音
+  const a=new Audio(daily.audio);dailyAudio=a;a.onerror=()=>{dailyAudio=null;speakTTS();};a.play().catch(()=>{dailyAudio=null;speakTTS();});
+ }else speakTTS();
+}
+// ===== 安靜的流動線條背景 =====
+const BG_KEY='ICS_BG_ANIM';
+let bgOn=true,bgRaf=0,bgLast=0;
+try{const v=localStorage.getItem(BG_KEY);bgOn=v===null?!matchMedia('(prefers-reduced-motion: reduce)').matches:v==='1';}catch(e){}
+const bgCv=document.getElementById('bg-canvas'),bgCx=bgCv.getContext('2d');
+const BG_COLORS=['120,95,70','84,112,75','166,120,69'];
+const BG_LINES=Array.from({length:16},(_,i)=>({y:.1+.8*i/15,a1:24+i*2.2,f1:.0016+i*.00005,s1:.00018+i*.00001,a2:12+i*1,f2:.0036-i*.00004,s2:-.00022-i*.00001,p:i*.7,rgb:BG_COLORS[i%3],al:.17+.11*Math.abs(Math.sin(i*1.3))}));
+function bgResize(){bgCv.width=innerWidth;bgCv.height=innerHeight;}
+function bgDraw(t){
+ const W=bgCv.width,H=bgCv.height;bgCx.clearRect(0,0,W,H);bgCx.lineWidth=1.8;
+ for(const L of BG_LINES){
+  bgCx.beginPath();
+  for(let x=0;x<=W+12;x+=12){
+   const y=H*L.y+L.a1*Math.sin(x*L.f1+t*L.s1+L.p)+L.a2*Math.sin(x*L.f2+t*L.s2+L.p*1.7);
+   x?bgCx.lineTo(x,y):bgCx.moveTo(x,y);
+  }
+  bgCx.strokeStyle='rgba('+L.rgb+','+L.al+')';bgCx.stroke();
+ }
+}
+function bgFrame(ts){bgRaf=requestAnimationFrame(bgFrame);if(ts-bgLast<33)return;bgLast=ts;bgDraw(ts);}
+function bgStart(){if(!bgRaf&&bgOn&&!document.hidden)bgRaf=requestAnimationFrame(bgFrame);}
+function bgStop(){cancelAnimationFrame(bgRaf);bgRaf=0;}
+function applyBg(){document.getElementById('bg-toggle').textContent=bgOn?'🌊 背景動畫 開':'🌊 背景動畫 關';bgStop();if(bgOn)bgStart();else bgCx.clearRect(0,0,bgCv.width,bgCv.height);}
+function toggleBg(){bgOn=!bgOn;try{localStorage.setItem(BG_KEY,bgOn?'1':'0');}catch(e){}applyBg();}
+addEventListener('resize',bgResize);
+document.addEventListener('visibilitychange',()=>document.hidden?bgStop():bgStart());
+bgResize();applyBg();
+const EV_KEY='ICS_EVENTS_V1',BOARD_KEY='ICS_BOARD_TAB';
+let events=[],editingEv=-1;
+try{const e=JSON.parse(localStorage.getItem(EV_KEY));if(Array.isArray(e))events=e.filter(x=>x&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)&&typeof x.title==='string');}catch(e){}
+function saveEvents(){try{localStorage.setItem(EV_KEY,JSON.stringify(events));}catch(e){notify('瀏覽器無法儲存活動');}}
+function daysUntil(d){return Math.round((new Date(d+'T00:00:00')-new Date(dailyDate()+'T00:00:00'))/864e5);}
+function renderEvents(){
+ const up=events.map((e,i)=>({...e,i,n:daysUntil(e.date)})).filter(e=>e.n>=0).sort((a,b)=>a.n-b.n||a.i-b.i);
+ const past=events.length-up.length;
+ document.getElementById('events-list').innerHTML=up.length?up.map(e=>{
+  const d=new Date(e.date+'T00:00:00').toLocaleDateString('zh-TW',{month:'numeric',day:'numeric',weekday:'short'});
+  const left=e.n===0?'今天':e.n===1?'明天':'還有 '+e.n+' 天';
+  return `<li><button class="ev" onclick="openEvent(${e.i})"><span class="ev-date">${safe(d)}</span><span class="ev-title">${safe(e.title)}${e.note?`<span class="ev-note"> · ${safe(e.note)}</span>`:''}</span><span class="ev-left">${left}</span></button></li>`;
+ }).join(''):'<li class="ev-empty">目前沒有即將到來的活動，按「＋新增活動」加入</li>';
+ const c=document.getElementById('ev-clear');c.hidden=!past;c.textContent='清除過期（'+past+'）';
+}
+function openEvent(i){
+ editingEv=i;const e=i>=0?events[i]:{date:dailyDate(),title:'',note:''};
+ document.getElementById('event-editor-title').textContent=i>=0?'編輯活動':'新增活動';
+ document.getElementById('ev-date').value=e.date;document.getElementById('ev-title').value=e.title;document.getElementById('ev-note').value=e.note||'';
+ document.getElementById('ev-del').hidden=i<0;document.getElementById('event-editor').showModal();
+}
+function saveEvent(){
+ const date=document.getElementById('ev-date').value,title=document.getElementById('ev-title').value.trim(),note=document.getElementById('ev-note').value.trim();
+ if(!date||!title){notify('請輸入日期與活動名稱');return;}
+ const obj={date,title,note};if(editingEv>=0)events[editingEv]=obj;else events.push(obj);
+ saveEvents();document.getElementById('event-editor').close();renderEvents();
+}
+function deleteEvent(){if(editingEv>=0&&confirm('刪除這個活動？')){events.splice(editingEv,1);saveEvents();document.getElementById('event-editor').close();renderEvents();}}
+function clearPastEvents(){if(!confirm('清除所有已過期的活動？'))return;events=events.filter(e=>daysUntil(e.date)>=0);saveEvents();renderEvents();}
+function switchBoard(w){
+ document.getElementById('daily-panel').hidden=w!=='daily';document.getElementById('events-panel').hidden=w!=='events';
+ document.getElementById('tab-daily').classList.toggle('active',w==='daily');document.getElementById('tab-events').classList.toggle('active',w==='events');
+ try{localStorage.setItem(BOARD_KEY,w);}catch(e){}
+}
+renderEvents();setInterval(renderEvents,60000);
+let savedBoard='daily';try{if(localStorage.getItem(BOARD_KEY)==='events')savedBoard='events';}catch(e){}
+switchBoard(savedBoard);
+renderDaily();
+refreshDaily(false);
+
+    init();
+  </script>
+</body>
+</html>
